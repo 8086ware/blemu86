@@ -6,8 +6,8 @@ int to_linear(uint16_t segment, uint16_t offset)
 
 	if (linear >= 0x100000)
 	{
-		linear -= 0x100000; // wrap
+		linear %= 0x100000; // wrap
 	}
 
-	return segment * 0x10 + offset;
+	return linear;
 }

@@ -142,8 +142,6 @@ void CGA::cycle()
 {
     SDL_ClearSurface(_surface, 0, 0, 0, 0);
 
-    SDL_Texture* screen_texture{ NULL };
-
     int width{};
     int height{};
     int columns{};
@@ -211,7 +209,7 @@ void CGA::cycle()
                     int write_location_y{ 8 * y };
                     int write_location_x{ 8 * x };
 
-                    int font_location{ 8 * character };
+                    int font_location{ 8 * static_cast<int>(character) };
 
                     for (int font_y{}; font_y < 8; font_y++)
                     {
@@ -260,12 +258,15 @@ void CGA::cycle()
         }
     }
 
-    screen_texture = SDL_CreateTextureFromSurface(_win_render, _surface);
-    
+    SDL_Surface* converted{ SDL_ConvertSurface(_surface, SDL_PIXELFORMAT_RGBA8888) };
+    SDL_Texture* screen_texture{ SDL_CreateTextureFromSurface(_win_render, converted) };
+
     SDL_SetTextureScaleMode(screen_texture, SDL_SCALEMODE_NEAREST);
     SDL_RenderTexture(_win_render, screen_texture, NULL, NULL);
     SDL_RenderPresent(_win_render);
     SDL_DestroyTexture(screen_texture);
+
+    SDL_DestroySurface(converted);
 }
 
 CGA::~CGA()

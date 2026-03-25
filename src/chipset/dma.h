@@ -80,8 +80,8 @@ public:
 		Channel_3_high_order_8bits = 0x82,
 	};
 
-	void write(int address, uint8_t data, bool io) override;
-	uint8_t read(int address, bool io) override;
+	bool write(int address, uint8_t data, bool io) override;
+	std::optional<uint8_t> read(int address, bool io) override;
 
 	void operation(int channel, std::unique_ptr<uint8_t[]>& data);
 

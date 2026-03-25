@@ -8,9 +8,8 @@ PIT::PIT(PIC& pic) : _pic{ pic }, Device(true, 1193182)
 	std::println("[PIT] Init...");
 }
 
-uint8_t PIT::read(int address, bool io)
+std::optional<uint8_t> PIT::read(int address, bool io)
 {
-	_last_access = false;
 	int channel{ address - std::to_underlying<Port>(Port::Channel_0) };
 
 	if (io)
@@ -72,14 +71,11 @@ uint8_t PIT::read(int address, bool io)
 		}
 	}
 
-	_last_access = true;
-
-	return 0xff;
+	return std::nullopt;
 }
 
-void PIT::write(int address, uint8_t data, bool io)
+bool PIT::write(int address, uint8_t data, bool io)
 {
-	_last_access = false;
 	int channel{ address - std::to_underlying<Port>(Port::Channel_0) };
 
 	if (io)
@@ -153,7 +149,7 @@ void PIT::write(int address, uint8_t data, bool io)
 		}
 		default:
 		{
-			_last_access = true;
+			return false;
 			break;
 		}
 		}
@@ -161,8 +157,10 @@ void PIT::write(int address, uint8_t data, bool io)
 
 	else
 	{
-		_last_access = true;
+		return false;
 	}
+
+	return true;
 }
 
 void PIT::cycle()

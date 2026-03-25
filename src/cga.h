@@ -37,8 +37,8 @@ public:
         uint16_t _start_address{};
         uint16_t _cursor_address{};
     public:
-        void write(int address, uint8_t data, bool io) override;
-        uint8_t read(int address, bool io) override;
+        bool write(int address, uint8_t data, bool io) override;
+        std::optional<uint8_t> read(int address, bool io) override;
 
         CrtC();
 

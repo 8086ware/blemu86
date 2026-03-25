@@ -1,9 +1,7 @@
 #include "cga.h"
 
-void CGA::CrtC::write(int address, uint8_t data, bool io)
+bool CGA::CrtC::write(int address, uint8_t data, bool io)
 {
-    _last_access = false;
-
     if (io)
     {
         switch (static_cast<Port>(address))
@@ -62,7 +60,7 @@ void CGA::CrtC::write(int address, uint8_t data, bool io)
         }
         default:
         {
-            _last_access = true;
+            return false;
             break;
         }
         }
@@ -70,14 +68,14 @@ void CGA::CrtC::write(int address, uint8_t data, bool io)
 
     else
     {
-        _last_access = true;
+        return false;
     }
+
+    return true;
 }
 
-uint8_t CGA::CrtC::read(int address, bool io)
+std::optional<uint8_t> CGA::CrtC::read(int address, bool io)
 {
-    _last_access = false;
-
     if (io)
     {
         switch (static_cast<Port>(address))
@@ -122,9 +120,7 @@ uint8_t CGA::CrtC::read(int address, bool io)
         }
     }
 
-    _last_access = true;
-
-    return 0xff;
+    return std::nullopt;
 }
 
 CGA::CrtC::CrtC() : Device(true, 0)

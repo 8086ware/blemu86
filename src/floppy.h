@@ -132,8 +132,8 @@ public:
 	static constexpr uint8_t st2_bad_cylinder{ 0x2 };
 	static constexpr uint8_t st2_md_mark_data_field{ 0x1 };
 
-	void write(int address, uint8_t data, bool io) override;
-	uint8_t read(int address, bool io) override;
+	bool write(int address, uint8_t data, bool io) override;
+	std::optional<uint8_t> read(int address, bool io) override;
 
 	FDC(PIC& pic, DMA& dma, std::array<FDD, 4>& fdds);
 };

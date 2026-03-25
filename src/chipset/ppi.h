@@ -53,8 +53,8 @@ public:
 	static constexpr uint8_t ctrl_higher_c_input{ 0x8 };
 	static constexpr uint8_t ctrl_a_input{ 0x16 };
 
-	void write(int address, uint8_t data, bool io) override;
-	uint8_t read(int address, bool io) override;
+	bool write(int address, uint8_t data, bool io) override;
+	std::optional<uint8_t> read(int address, bool io) override;
 
 	PPI(PIC& pic);
 };

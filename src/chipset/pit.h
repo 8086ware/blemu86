@@ -56,8 +56,8 @@ class PIT : public Device
 	} _timers[3]{};
 public:
 	// IO device base class stuff
-	void write(int address, uint8_t data, bool io) override;
-	uint8_t read(int address, bool io) override;
+	bool write(int address, uint8_t data, bool io) override;
+	std::optional<uint8_t> read(int address, bool io) override;
 
 	void cycle() override;
 

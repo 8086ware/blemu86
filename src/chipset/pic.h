@@ -55,8 +55,9 @@ public:
 	static constexpr uint8_t ocw3_enable{ 0x8 };
 	static constexpr uint8_t ocw3_smm{ 0x60 };
 
-	void write(int address, uint8_t data, bool io) override;
-	uint8_t read(int address, bool io) override;
+	bool write(int address, uint8_t data, bool io) override;
+	std::optional<uint8_t> read(int address, bool io) override;
+
 	void raise(IRQ line);
 
 	uint8_t& get_irr() { return _irr; }

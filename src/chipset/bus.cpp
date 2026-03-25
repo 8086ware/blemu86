@@ -11,7 +11,7 @@ Bus::Bus(std::shared_ptr<uint8_t[]>& ram) : _ram{ ram }
 
 uint8_t Bus::read8(int address, bool io)
 {
-	uint8_t read{ 0xff };
+	std::optional<uint8_t> read{};
 
 	if (address >= 0x100000 || address < 0)
 	{
@@ -19,25 +19,30 @@ uint8_t Bus::read8(int address, bool io)
 		return 0xff;
 	}
 
-	bool device_read{};
-
 	for (int i{}; i < this->_io_devices.size(); i++) // Go through all IO devices...
 	{
-		read = _io_devices[i]->read(address, io); // Pass address and io option and write
+		 read = _io_devices[i]->read(address, io); // Pass address and io option and write
 
-		if (!_io_devices[i]->get_last_access())
+		if (read)
 		{
-			device_read = true;
 			break;
 		}
 	}
 
-	if (!device_read && !io)
+	if (!read)
 	{
-		read = _ram[address];
+		if (io)
+		{
+			read = 0xff;
+		}
+
+		else
+		{
+			read = _ram[address];
+		}
 	}
 
-	return read;
+	return read.value();
 }
 
 uint16_t Bus::read16(int address, bool io)
@@ -57,11 +62,10 @@ void Bus::write8(int address, uint8_t data, bool io)
 
 	for (int i{}; i < this->_io_devices.size(); i++) // Go through all IO devices...
 	{
-		_io_devices[i]->write(address, data, io); // Pass address and io option and write
+		device_written = _io_devices[i]->write(address, data, io);
 
-		if (!_io_devices[i]->get_last_access())
+		if (device_written) // Pass address and io option and write
 		{
-			device_written = true;
 			break;
 		}
 	}

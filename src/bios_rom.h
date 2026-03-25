@@ -37,10 +37,8 @@ public:
 		_bios_file.close();
 	}
 
-	virtual uint8_t read(int address, bool io) // Read only device
+	std::optional<uint8_t> read(int address, bool io) override // Read only device
 	{
-		_last_access = false;
-
 		if (!io)
 		{
 			if (address >= 0x100000 - _file_size && address < 0x100000)
@@ -49,7 +47,6 @@ public:
 			}
 		}
 
-		_last_access = true;
-		return 0xff;
+		return std::nullopt;
 	}
 };

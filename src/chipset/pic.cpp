@@ -7,10 +7,8 @@ void PIC::raise(IRQ line)
 	_irr |= (1 << std::to_underlying<IRQ>(line));
 }
 
-void PIC::write(int address, uint8_t data, bool io) 
+bool PIC::write(int address, uint8_t data, bool io) 
 {
-	_last_access = false;
-
 	if (io)
 	{
 		switch (static_cast<Port>(address))
@@ -111,7 +109,7 @@ void PIC::write(int address, uint8_t data, bool io)
 		}
 		default:
 		{
-			_last_access = true;
+			return false;
 			break;
 		}
 		}
@@ -119,14 +117,14 @@ void PIC::write(int address, uint8_t data, bool io)
 
 	else
 	{
-		_last_access = true;
+		return false;
 	}
+
+	return true;
 }
 
-uint8_t PIC::read(int address, bool io)
+std::optional<uint8_t> PIC::read(int address, bool io)
 {
-	_last_access = false;
-
 	if (io)
 	{
 		switch (static_cast<Port>(address))
@@ -157,8 +155,7 @@ uint8_t PIC::read(int address, bool io)
 		}
 	}
 
-	_last_access = true;
-	return 0xff;
+	return std::nullopt;
 }
 
 PIC::PIC() : Device(true, 0)

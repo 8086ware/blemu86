@@ -7,10 +7,8 @@ PPI::PPI(PIC& pic) : Device(true, 0), _pic{ pic }
 }
 
 // value is something to be written, using read 
-uint8_t PPI::read(int address, bool io)
+std::optional<uint8_t> PPI::read(int address, bool io)
 {
-	_last_access = false;
-
 	if (io)
 	{
 		switch (static_cast<Port>(address))
@@ -42,14 +40,11 @@ uint8_t PPI::read(int address, bool io)
 		}
 	}
 
-	_last_access = true;
-	return 0xff;
+	return std::nullopt;
 }
 
-void PPI::write(int address, uint8_t data, bool io)
+bool PPI::write(int address, uint8_t data, bool io)
 {
-	_last_access = false;
-
 	if (io)
 	{
 		switch (static_cast<Port>(address))
@@ -85,13 +80,15 @@ void PPI::write(int address, uint8_t data, bool io)
 		}
 		default:
 		{
-			_last_access = true;
+			return false;
 		}
 		}
 	}
 
 	else
 	{
-		_last_access = true;
+		return false;
 	}
+
+	return true;
 }

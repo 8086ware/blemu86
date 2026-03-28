@@ -12,13 +12,13 @@ bool Blemu86::loop()
 		CPU::Instruction instruction{ _cpu };
 		instruction.exec();
 
-		for (size_t k{}; k < _cycle_devices.size(); k++)
+		for (size_t k{}; k < _clocked_devices.size(); k++)
 		{
-			double device_ns_per_tick{ (1 / static_cast<double>(_cycle_devices[k]->get_hz())) * 1'000'000'000 };
+			double device_ns_per_tick{ (1 / _clocked_devices[k].second * 1'000'000'000) };
 
 			if (_cpu.ticks_total % (size_t)(device_ns_per_tick / cpu_ns_per_tick) == 0) // Sync time for things slower than CPU
 			{
-				_cycle_devices[k]->cycle();
+				_clocked_devices[k].first->cycle();
 			}
 		}
 	}
@@ -43,18 +43,18 @@ Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_
 {
 	srand(time(NULL)); // needed for some things
 
-	new_cycle_device(_keyboard);
-	new_cycle_device(_cga);
-	new_cycle_device(_pit);
+	new_clock_device(&_keyboard, 15000);
+	new_clock_device(&_cga, 200);
+	new_clock_device(&_pit, 1193182);
 
-	_bus.new_iodevice(_cga);
-	_bus.new_iodevice(_cga.crtc);
-	_bus.new_iodevice(_pit);
-	_bus.new_iodevice(_pic);
-	_bus.new_iodevice(_ppi);
-	_bus.new_iodevice(_bios_rom);
-	_bus.new_iodevice(_dma);
-	_bus.new_iodevice(_fdc);
+	_bus.new_io_device(&_cga);
+	_bus.new_io_device(&_cga.crtc);
+	_bus.new_io_device(&_pit);
+	_bus.new_io_device(&_pic);
+	_bus.new_io_device(&_ppi);
+	_bus.new_io_device(&_bios_rom);
+	_bus.new_io_device(&_dma);
+	_bus.new_io_device(&_fdc);
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
@@ -73,7 +73,7 @@ Blemu86::~Blemu86()
 	SDL_Quit();
 }
 
-void Blemu86::new_cycle_device(Device& device)
+void Blemu86::new_clock_device(Clock_Device* device, double hz)
 {
-	_cycle_devices.push_back(&device);
+	_clocked_devices.push_back({device, hz});
 }

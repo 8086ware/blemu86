@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "device.h"
 
-class PIC : public Device
+class PIC : public IO_Device
 {
 	uint8_t _command{};
 	// -1 if no interrupt, > -1 contains interrupt number

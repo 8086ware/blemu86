@@ -3,7 +3,7 @@
 #include <print>
 #include <chrono>
 
-PIT::PIT(PIC& pic) : _pic{ pic }, Device(true, 1193182)
+PIT::PIT(PIC& pic) : _pic{ pic }
 {
 	std::println("[PIT] Init...");
 }

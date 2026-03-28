@@ -19,12 +19,12 @@ public:
 	static constexpr int ram_size{ 0x100000 };
 	Blemu86(std::string_view bios_rom_file_name);
 	~Blemu86();
-	void new_cycle_device(Device& device);
+	void new_clock_device(Clock_Device* device, double hz);
 	bool loop();
 private:
 	SDL_Window* _win{ SDL_CreateWindow("86Blemu", 320 * 3, 200 * 3, SDL_WINDOW_RESIZABLE) };
 	SDL_Renderer* _win_render{ SDL_CreateRenderer(_win, NULL) };
-	std::vector<Device*> _cycle_devices{}; // Devices to cycle through (e.g: PIT)
+	std::vector<std::pair<Clock_Device*, double>> _clocked_devices{}; // Devices to cycle through (e.g: PIT) and the HZ
 	std::shared_ptr<uint8_t[]> _ram{ std::make_unique<uint8_t[]>(ram_size) };
 	Bus _bus{ _ram };
 	CGA _cga{ _win_render };

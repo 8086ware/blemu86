@@ -2,7 +2,7 @@
 #include "device.h"
 #include "pic.h"
 
-class PPI : public Device
+class PPI : public IO_Device
 {
 	uint8_t _ppi_dip_switch{ 0x2C };
 

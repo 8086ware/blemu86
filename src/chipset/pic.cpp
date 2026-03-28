@@ -158,7 +158,7 @@ std::optional<uint8_t> PIC::read(int address, bool io)
 	return std::nullopt;
 }
 
-PIC::PIC() : Device(true, 0)
+PIC::PIC()
 {
 	std::println("[PIC] Init...");
 }

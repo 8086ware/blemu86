@@ -11,7 +11,7 @@ FDD::FDD(std::string_view file_name)
 		return;
 	}
 
-	_file.open(file_name, std::ios_base::binary | std::ios_base::out | std::ios_base::in);
+	_file.open(std::filesystem::path(file_name), std::ios_base::binary | std::ios_base::out | std::ios_base::in);
 
 	if (!_file.is_open())
 	{
@@ -60,7 +60,7 @@ bool FDD::read(uint8_t* data, size_t size)
 	return _file.bad() || _file.eof();
 }
 
-FDC::FDC(PIC& pic, DMA& dma, std::array<FDD, 4>& fdds) : Device(true, 0), _pic{ pic }, _dma{ dma }, _fdds{ fdds }
+FDC::FDC(PIC& pic, DMA& dma, std::array<FDD, 4>& fdds) : _pic{ pic }, _dma{ dma }, _fdds{ fdds }
 {
 	std::println("[FDC] Init...");
 }

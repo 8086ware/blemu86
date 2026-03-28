@@ -5,7 +5,7 @@
 
 // 8253 Programmable Interval Timer
 
-class PIT : public Device
+class PIT : public IO_Device, public Clock_Device
 {
 	PIC& _pic; // PIC the PIT is connected to
 

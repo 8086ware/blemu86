@@ -2,7 +2,7 @@
 #include <utility>
 #include <print>
 
-Keyboard::Keyboard(PPI& ppi, PIC& pic) : Device(false, 150000), _ppi{ ppi }, _pic{ pic }
+Keyboard::Keyboard(PPI& ppi, PIC& pic) : _ppi{ ppi }, _pic{ pic }
 {
     std::println("[XTKeyboard] Init...");
 }

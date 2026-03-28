@@ -7,7 +7,7 @@
 
 class Bus
 {
-	std::vector<Device*> _io_devices{};
+	std::vector<IO_Device*> _io_devices{};
 	std::shared_ptr<uint8_t[]> _ram{};
 public:
 	Bus(std::shared_ptr<uint8_t[]>& ram);
@@ -17,5 +17,5 @@ public:
 	void write8(int address, uint8_t data, bool io);
 	void write16(int address, uint16_t data, bool io);
 
-	void new_iodevice(Device& device);
+	void new_io_device(IO_Device* device);
 };

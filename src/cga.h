@@ -9,10 +9,10 @@
 // It uses cga ports and memory space to i/o so we use the Device base class
 // Contains all display information as well
 
-class CGA : public Device
+class CGA : public IO_Device, public Clock_Device
 {
 public:
-    class CrtC : public Device
+    class CrtC : public IO_Device
     {
         enum class Port
         {
@@ -45,6 +45,7 @@ public:
         friend class CGA;
     };
 
+    // CGA 8*8 font
     static constexpr std::array<uint8_t, 256 * 8> font
     {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -331,13 +332,14 @@ public:
 		Color_Control = 0x3D9,
 	};
 
-	CGA(SDL_Renderer* win_render) : Device(true, 200), _win_render { win_render }
+	CGA(SDL_Renderer* win_render) : _win_render { win_render }
 	{
 		std::println("[CGA] Init...");
 
         _palette_4bit = SDL_CreatePalette(16);
         SDL_SetPaletteColors(_palette_4bit, cga_4bit_palette.data(), 0, 16);
 
+        // This is for 640x200 graphics mode
         SDL_Color color_1bit[2] = { {0, 0, 0, 0}, {0xFF, 0xFF, 0xFF, 0xFF} };
         _palette_1bit = SDL_CreatePalette(2);
         SDL_SetPaletteColors(_palette_1bit, color_1bit, 0, 2);
@@ -352,10 +354,11 @@ public:
 	~CGA();
 
     CrtC crtc{};
-    
-    static constexpr std::array<SDL_Color, 3> cga_palette_0{ { {.r = 0, .g = 0xAA, .b = 0x0, .a = 0xFF }, {.r = 0xAA, .g = 0x0, .b = 0x0, .a = 0xFF}, {.r = 0xAA, .g = 0x55, .b = 0x0, .a = 0xFF} } };
+
+    // This is for 320x200 graphics mode (brown, green, red) and (magenta, cyan, white)
+    static constexpr std::array<SDL_Color, 3> cga_palette_0{ { {.r = 0, .g = 0xAA, .b = 0x0, .a = 0xFF }, {.r = 0xAA, .g = 0x0, .b = 0x0, .a = 0xFF}, {.r = 0xAA, .g = 0x55, .b = 0x0, .a = 0xFF} } }; 
     static constexpr std::array<SDL_Color, 3> cga_palette_1{ { {.r = 0x0, .g = 0xAA, .b = 0xAA, .a = 0xFF }, {.r = 0xAA, .g = 0x0, .b = 0xAA, .a = 0xFF}, {.r = 0xAA, .g = 0xAA, .b = 0xAA, .a = 0xFF} } };
-    static constexpr std::array<SDL_Color, 16> cga_4bit_palette
+    static constexpr std::array<SDL_Color, 16> cga_4bit_palette // This contains the 16 CGA colors
     { { 
         {.r = 0x0, .g = 0x0, .b = 0x0, .a = 0xFF },
         {.r = 0x0, .g = 0x0, .b = 0xAA, .a = 0xFF},

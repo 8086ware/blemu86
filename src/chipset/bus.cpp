@@ -82,7 +82,7 @@ void Bus::write16(int address, uint16_t data, bool io)
 	write8(address + 1, static_cast<uint8_t>((data & 0xff00) >> 8), io);
 }
 
-void Bus::new_iodevice(Device& device)
+void Bus::new_io_device(IO_Device* device)
 {
-	_io_devices.push_back(&device);
+	_io_devices.push_back(device);
 }

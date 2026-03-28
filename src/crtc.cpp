@@ -123,7 +123,7 @@ std::optional<uint8_t> CGA::CrtC::read(int address, bool io)
     return std::nullopt;
 }
 
-CGA::CrtC::CrtC() : Device(true, 0)
+CGA::CrtC::CrtC()
 {
     std::println("[CrtC] Init...");
 }

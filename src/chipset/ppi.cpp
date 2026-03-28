@@ -1,7 +1,7 @@
 #include "ppi.h"
 #include <print>
 
-PPI::PPI(PIC& pic) : Device(true, 0), _pic{ pic }
+PPI::PPI(PIC& pic) : _pic{ pic }
 {
 	std::println("[PPI] Init...");
 }

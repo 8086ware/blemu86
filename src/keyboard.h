@@ -5,7 +5,7 @@
 #include "chipset/ppi.h"
 #include <vector>
 
-class Keyboard : public Device
+class Keyboard : public Clock_Device
 {
 	std::vector<uint8_t> _scancodes{};
 

@@ -2,7 +2,7 @@
 #include <utility>
 #include <print>
 
-DMA::DMA(Bus& bus) : Device(true, 0), _bus{ bus }
+DMA::DMA(Bus& bus) : _bus{ bus }
 {
 	std::println("[DMA] Init...");
 }

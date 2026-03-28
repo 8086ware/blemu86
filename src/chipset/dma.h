@@ -2,7 +2,7 @@
 #include "device.h"
 #include "chipset/bus.h"
 
-class DMA : public Device
+class DMA : public IO_Device
 {
 	uint8_t _status{};
 

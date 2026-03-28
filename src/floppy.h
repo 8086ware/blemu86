@@ -58,7 +58,7 @@ public:
 	bool read(uint8_t* data, size_t size);
 };
 
-class FDC : public Device
+class FDC : public IO_Device
 {
 	// intel 8272 or nec u765 compatible
 

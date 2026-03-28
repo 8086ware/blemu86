@@ -5,14 +5,14 @@
 #include <print>
 #include <filesystem>
 
-class Bios_ROM : public Device
+class Bios_ROM : public IO_Device
 {
 private:
 	std::ifstream _bios_file{};
 	size_t _file_size{};
 	std::unique_ptr<uint8_t[]> _bios_rom{ nullptr };
 public:
-	Bios_ROM(std::string_view file_name) : Device(false, 0)
+	Bios_ROM(std::string_view file_name)
 	{
 		_bios_file.open(file_name, std::ios_base::binary | std::ios_base::in);
 
@@ -48,5 +48,10 @@ public:
 		}
 
 		return std::nullopt;
+	}
+
+	bool write(int address, uint8_t data, bool io) override // Read only device
+	{
+		return false;
 	}
 };

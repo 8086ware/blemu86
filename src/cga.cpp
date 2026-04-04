@@ -3,6 +3,25 @@
 #include <chrono>
 #include <print>
 
+CGA::CGA(SDL_Renderer* win_render) : _win_render{ win_render }
+{
+    std::println("[CGA] Init...");
+
+    _palette_4bit = SDL_CreatePalette(16);
+    SDL_SetPaletteColors(_palette_4bit, cga_4bit_palette.data(), 0, 16);
+
+    // This is for 640x200 graphics mode
+    SDL_Color color_1bit[2] = { {0, 0, 0, 0}, {0xFF, 0xFF, 0xFF, 0xFF} };
+    _palette_1bit = SDL_CreatePalette(2);
+    SDL_SetPaletteColors(_palette_1bit, color_1bit, 0, 2);
+
+    _palette_0 = SDL_CreatePalette(4);
+    SDL_SetPaletteColors(_palette_0, cga_palette_0.data(), 0, 4);
+
+    _palette_1 = SDL_CreatePalette(4);
+    SDL_SetPaletteColors(_palette_1, cga_palette_1.data(), 0, 4);
+}
+
 bool CGA::write(int address, uint8_t data, bool io)
 {
 	if(io)

@@ -14,7 +14,7 @@ private:
 public:
 	Bios_ROM(std::string_view file_name)
 	{
-		_bios_file.open(file_name, std::ios_base::binary | std::ios_base::in);
+		_bios_file.open(std::filesystem::path(file_name), std::ios_base::binary | std::ios_base::in);
 
 		if (_bios_file.is_open())
 		{

@@ -1687,7 +1687,7 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::PUSHA:
 			{
-				for (int i = 0; i < 8; i++)
+				for (int i{}; i < 8; i++)
 				{
 					_cpu.push(_cpu.get_reg16(static_cast<Registers>(i)));
 				}
@@ -1727,7 +1727,7 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::POPA:
 			{
-				for (int i = 7; i >= 0; i--)
+				for (int i{ 7 }; i >= 0; i--)
 				{
 					if (i == 4) // popping sp (into nothing)
 					{

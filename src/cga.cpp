@@ -146,7 +146,7 @@ std::optional<uint8_t> CGA::read(int address, bool io)
         {
         case Port::Status_Register:
         {
-            uint8_t retrace{ static_cast<uint8_t>((rand() % 2)) }; // give some random number because why man?
+            uint8_t retrace{ static_cast<uint8_t>(rand() % 2) }; // give some random number because why man?
 
             return retrace ? 0x9 : 0x0;
             break;

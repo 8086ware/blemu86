@@ -11,7 +11,7 @@ CPU::Instruction::Instruction(CPU& cpu) : _cpu{ cpu }
 
 	while (!prefix_instruction_done)
 	{
-		CPU_Opcode cur_byte = static_cast<CPU_Opcode>(_cpu._bus.read8(to_linear(_segment, _offset + _length), false));
+		CPU_Opcode cur_byte{ static_cast<CPU_Opcode>(_cpu._bus.read8(to_linear(_segment, _offset + _length), false)) };
 
 		switch (cur_byte)
 		{
@@ -46,7 +46,7 @@ CPU::Instruction::Instruction(CPU& cpu) : _cpu{ cpu }
 
 	//http://forthworks.com:8800/temp/opcodes.html
 
-	CPU_Opcode opcode = static_cast<CPU_Opcode>(_cpu._bus.read8(to_linear(_segment, _offset + _length), false));
+	CPU_Opcode opcode{ static_cast<CPU_Opcode>(_cpu._bus.read8(to_linear(_segment, _offset + _length), false)) };
 
 	_operation = opcode;
 

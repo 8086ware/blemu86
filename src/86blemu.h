@@ -33,8 +33,8 @@ private:
 	PIT _pit{ _pic };
 	CPU _cpu{ _pic, _bus };
 	DMA _dma{ _bus };
-	std::array<FDD, 4> fdds{ { {"osall.img"}, {""}, {""}, {""} } };
-	FDC _fdc{ _pic, _dma, fdds };
+	std::array<FDD, 4> _fdds;
+	FDC _fdc{ _pic, _dma, _fdds };
 	Bios_ROM _bios_rom;
 	Keyboard _keyboard{ _ppi, _pic };
 };

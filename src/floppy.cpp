@@ -3,23 +3,33 @@
 #include <filesystem>
 #include <string_view>
 
+FDD::FDD()
+{
+	std::println("[FDD] Init...");
+}
+
 FDD::FDD(std::string_view file_name)
+{
+	std::println("[FDD] Init...");
+	insert(file_name);
+}
+
+bool FDD::insert(std::string_view file_name)
 {
 	if (file_name.empty())
 	{
-		std::println("[FDD] Init with no floppy");
-		return;
+		return false;
 	}
 
 	_file.open(std::filesystem::path(file_name), std::ios_base::binary | std::ios_base::out | std::ios_base::in);
 
 	if (!_file.is_open())
 	{
-		std::println("[FDD] Init with {} but failed (file not found?)", file_name);
-		return;
+		std::println("[FDD] Inserted with {} but failed (file not found?)", file_name);
+		return false;
 	}
 
-	std::println("[FDD] Init with {}", file_name);
+	std::println("[FDD] Inserted {}", file_name);
 
 	size_t floppy_total_bytes{ std::filesystem::file_size(file_name) };
 

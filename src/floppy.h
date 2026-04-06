@@ -44,6 +44,7 @@ public:
 		{.cylinders = 80, .heads = 2, .spt = 18}, // 1.44M
 	} };
 
+	FDD();
 	FDD(std::string_view file_name);
 
 	bool seek(int cylinder, int head, int sector);
@@ -56,6 +57,8 @@ public:
 
 	bool write(uint8_t* data, size_t size);
 	bool read(uint8_t* data, size_t size);
+
+	bool insert(std::string_view file_name);
 };
 
 class FDC : public IO_Device

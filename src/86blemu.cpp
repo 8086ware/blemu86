@@ -63,6 +63,7 @@ Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_
 
 	SDL_AddEventWatch(exit_callback, this);
 
+	_fdds[0].insert("osall.img");
 	_cpu.set_last_tick(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 }
 

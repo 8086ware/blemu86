@@ -1,4 +1,4 @@
-#include "86blemu.h"
+#include "blemu86.h"
 #include <SDL3/SDL.h>
 #include <string>
 

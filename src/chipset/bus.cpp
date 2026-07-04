@@ -2,7 +2,6 @@
 #include <print>
 #include "device.h"
 #include <memory>
-#include "86blemu.h"
 
 Bus::Bus(std::shared_ptr<uint8_t[]>& ram) : _ram{ ram }
 {

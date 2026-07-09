@@ -34,7 +34,7 @@ class FDD
 
 	std::fstream _file{};
 public:
-	static constexpr std::array<_Fd_info_struct, std::to_underlying<Type>(Type::Count)> fd_info{ { // This can be public read-only
+	static constexpr std::array<_Fd_info_struct, std::to_underlying(Type::Count)> fd_info{ { // This can be public read-only
 		{.cylinders = 40, .heads = 1, .spt = 8}, // 160k
 		{.cylinders = 40, .heads = 1, .spt = 9}, // 180k
 		{.cylinders = 40, .heads = 2, .spt = 8}, // 320k
@@ -49,11 +49,11 @@ public:
 
 	bool seek(int cylinder, int head, int sector);
 
-	int cylinder() { return (_file.tellg() / _sector_size) / (fd_info[std::to_underlying<Type>(_type)].spt * fd_info[std::to_underlying<Type>(_type)].heads); }
-	int head() { return ((_file.tellg() / _sector_size) % (fd_info[std::to_underlying<Type>(_type)].spt * fd_info[std::to_underlying<Type>(_type)].heads)) / fd_info[std::to_underlying<Type>(_type)].spt; }
-	int sector() { return (_file.tellg() / _sector_size) % fd_info[std::to_underlying<Type>(_type)].spt + 1; }
+	int cylinder() { return (_file.tellg() / _sector_size) / (fd_info[std::to_underlying(_type)].spt * fd_info[std::to_underlying(_type)].heads); }
+	int head() { return ((_file.tellg() / _sector_size) % (fd_info[std::to_underlying(_type)].spt * fd_info[std::to_underlying(_type)].heads)) / fd_info[std::to_underlying(_type)].spt; }
+	int sector() { return (_file.tellg() / _sector_size) % fd_info[std::to_underlying(_type)].spt + 1; }
 
-	int get_type_id() { return std::to_underlying<Type>(_type); }
+	int get_type_id() { return std::to_underlying(_type); }
 
 	bool write(uint8_t* data, size_t size);
 	bool read(uint8_t* data, size_t size);

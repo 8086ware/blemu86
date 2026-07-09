@@ -8,9 +8,9 @@ add_executable(blemu86 "src/main.cpp" "src/blemu86.h" "src/cpu/cpu.h" "src/chips
 
 target_include_directories(blemu86 PUBLIC "src")
 
-find_package(SDL3 REQUIRED)
+find_package(SFML CONFIG REQUIRED Window Graphics Audio System)
 
-target_link_libraries(blemu86 PUBLIC SDL3::SDL3)
+target_link_libraries(blemu86 PUBLIC SFML::Window SFML::Graphics SFML::Audio SFML::System)
 
 add_compile_options(-fsanitize=address)
 add_link_options(-fsanitize=address)

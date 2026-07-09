@@ -1,5 +1,5 @@
 #include "cpu.h"
-#include <utility>
+
 CPU::Instruction::Operand::Operand(CPU& cpu, bool width) : _cpu{ cpu }, _width{ width }
 {
 	if (width)

@@ -455,7 +455,7 @@ void Keyboard::cycle()
             _scancodes.back() += 0x80;
         }
 
-        std::optional<uint8_t> ppi_port_b{ _ppi.read(std::to_underlying<PPI::Port>(PPI::Port::B), true) };
+        std::optional<uint8_t> ppi_port_b{ _ppi.read(std::to_underlying(PPI::Port::B), true) };
 
         if ((ppi_port_b.value() & PPI::b_keyboard_disable) == 0)
         {

@@ -543,8 +543,8 @@ private:
 	PIC& _pic; // The pic connected to the cpu
 	Bus& _bus;
 
-	std::array<Register, std::to_underlying<Registers>(Registers::Count)> _regs{};
-	std::array<Register, std::to_underlying<Segment_Registers>(Segment_Registers::Count)> _sregs{};
+	std::array<Register, std::to_underlying(Registers::Count)> _regs{};
+	std::array<Register, std::to_underlying(Segment_Registers::Count)> _sregs{};
 
 	size_t _hz{ 5000000 };
 	size_t _last_tick{};

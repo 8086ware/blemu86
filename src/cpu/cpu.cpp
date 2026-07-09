@@ -32,25 +32,25 @@ uint16_t CPU::pop()
 
 uint16_t& CPU::get_reg16(Registers reg)
 {
-	return _regs[std::to_underlying<Registers>(reg)].word;
+	return _regs[std::to_underlying(reg)].word;
 }
 
 uint8_t& CPU::get_reg8(Registers_8 reg)
 {
-	if (std::to_underlying<Registers_8>(reg) <= 3)
+	if (std::to_underlying(reg) <= 3)
 	{
-		return _regs[std::to_underlying<Registers_8>(reg)].byte[0];
+		return _regs[std::to_underlying(reg)].byte[0];
 	}
 
 	else
 	{
-		return _regs[std::to_underlying<Registers_8>(reg) - 4].byte[1];
+		return _regs[std::to_underlying(reg) - 4].byte[1];
 	}
 }
 
 uint16_t& CPU::get_sreg(Segment_Registers reg)
 {
-	return _sregs[std::to_underlying<Segment_Registers>(reg)].word;
+	return _sregs[std::to_underlying(reg)].word;
 }
 
 void CPU::check_irq()

@@ -3,6 +3,12 @@
 #include <filesystem>
 #include <string_view>
 
+unsigned int FDD::to_lba(int c, int h, int s)
+{
+	//LBA = (( C x HPC ) + H ) x SPT + S - 1
+	return ((c * fd_info[std::to_underlying(_type)].heads) + h) * fd_info[std::to_underlying(_type)].spt + (s - 1);
+}
+
 FDD::FDD()
 {
 	std::println("[FDD] Init...");
@@ -43,16 +49,18 @@ bool FDD::insert(std::string_view file_name)
 			break;
 		}
 	}
+
+	return true;
 }
 
 bool FDD::seek(int cylinder, int head, int sector)
 {
-	std::println("[FDD] Seek to C:{}, H:{}, S:{}", cylinder, head, sector);
+	std::println("[FDD] Seeked to C:{}, H:{}, S:{}", cylinder, head, sector);
 
-	int lba{ ((cylinder * fd_info[std::to_underlying<Type>(_type)].heads + head) * fd_info[std::to_underlying<Type>(_type)].spt + (sector - 1)) * _sector_size};
+	unsigned int lba{ to_lba(cylinder, head, sector) * _sector_size};
 
 	_file.seekp(lba, std::ios_base::beg);
-	_file.seekp(lba, std::ios_base::beg);
+	_file.seekg(lba, std::ios_base::beg);
 
 	return _file.bad() || _file.eof();
 }
@@ -174,36 +182,34 @@ bool FDC::write(int address, uint8_t data, bool io)
 				}
 				case data_command_read:
 				{
-					uint8_t cylinder_number = _data[2];
-					uint8_t head_number = _data[3];
-					uint8_t sector_number = _data[4];
-					uint8_t bytes_per_sector = _data[5];
-					uint8_t end_of_track = _data[6];
-					uint8_t data_length = _data[8];
+					// define size_t instead of uint8_t incase calculations overflow and do shit
+					size_t cylinder_number = _data[2];
+					size_t head_number = _data[3];
+					size_t sector_number = _data[4];
+					size_t bytes_per_sector = _data[5];
+					size_t end_of_track = _data[6];
+					size_t data_length = _data[8];
 					
 					int bytes_read{};
 
-					if (bytes_per_sector == 2)
-					{
-						bytes_read = 512;
-					}
+					bytes_read = pow(2, bytes_per_sector) * 128;
 
-					else
+					if (bytes_per_sector > 3)
 					{
 						bytes_read = data_length;
 					}
 
-					_data[6] = bytes_per_sector;
+					int mt_read_multiplier{ 1 };
 
 					if (_data[0] & 0x80) // multi track read
 					{
-						mt_read = 2;
+						mt_read_multiplier = 2;
 					}
 
-					auto fdd_buffer{ std::make_unique<uint8_t[]>(((end_of_track - (sector_number - 1)) * bytes_read) * mt_read) };
+					auto fdd_buffer{ std::make_unique<uint8_t[]>(((end_of_track - (sector_number - 1)) * bytes_read) * mt_read_multiplier) };
 
 					_selected_fdd->seek(cylinder_number, head_number, sector_number);
-					_selected_fdd->read(fdd_buffer.get(), (end_of_track - (sector_number - 1)) * bytes_read);
+					_selected_fdd->read({ fdd_buffer.get(), (end_of_track - (sector_number - 1)) * bytes_read });
 
 					if (_data[0] & 0x80) // multi track read
 					{
@@ -217,15 +223,17 @@ bool FDC::write(int address, uint8_t data, bool io)
 							_selected_fdd->seek(cylinder_number, 0, sector_number);
 						}
 
-						_selected_fdd->read(&fdd_buffer.get()[(end_of_track - (sector_number - 1)) * bytes_read - 1], (end_of_track - (sector_number - 1)) * bytes_read);
+						_selected_fdd->read({ &fdd_buffer.get()[(end_of_track - (sector_number - 1)) * bytes_read - 1], (end_of_track - (sector_number - 1)) * bytes_read });
 					}
 
 					_dma.operation(2, { fdd_buffer.get(), ((end_of_track - (sector_number - 1)) * bytes_read) * mt_read_multiplier});
 
 					_data_bytes = 7;
 
+					_data[6] = bytes_per_sector;
+
 					_st[0] = (head_number << 2) | _data[1] & 0x3;
-					_st[1] = 0;
+					_st[1] |= 0x80;
 					_st[2] = 0;
 
 					_pic.raise(PIC::IRQ::Floppy_Ctrl);

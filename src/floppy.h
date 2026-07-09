@@ -59,6 +59,8 @@ public:
 	bool read(std::span<uint8_t> data);
 
 	bool insert(std::string_view file_name);
+
+	unsigned int to_lba(int c, int h, int s);
 };
 
 class FDC : public IO_Device

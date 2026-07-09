@@ -2,455 +2,458 @@
 #include <utility>
 #include <print>
 
-Keyboard::Keyboard(PPI& ppi, PIC& pic) : _ppi{ ppi }, _pic{ pic }
+Keyboard::Keyboard(sf::Window& win, PPI& ppi, PIC& pic) : _ppi{ ppi }, _pic{ pic }, _win{ win }
 {
     std::println("[XTKeyboard] Init...");
 }
 
 void Keyboard::cycle()
 {
-    SDL_Event event{};
+    const std::optional event{ _win.pollEvent() };
 
-    SDL_PollEvent(&event);
-
-    if (event.type == SDL_EVENT_KEY_UP || event.type == SDL_EVENT_KEY_DOWN)
+    if (event && (event->is<sf::Event::KeyPressed>() || event->is<sf::Event::KeyReleased>()))
     {
-        switch (event.key.scancode)
+        sf::Keyboard::Scancode scancode{};
+
+        if (event->is<sf::Event::KeyPressed>()) scancode = event->getIf<sf::Event::KeyPressed>()->scancode;
+        if (event->is<sf::Event::KeyReleased>()) scancode = event->getIf<sf::Event::KeyReleased>()->scancode;
+
+        switch (scancode)
         {
-        case SDL_SCANCODE_ESCAPE:
+        case sf::Keyboard::Scancode::Escape:
         {
             _scancodes.push_back(0x1);
             break;
         }
-        case SDL_SCANCODE_RETURN:
+        case sf::Keyboard::Scancode::Enter:
         {
             _scancodes.push_back(0x1C);
             break;
         }
-        case SDL_SCANCODE_A:
+        case sf::Keyboard::Scancode::A:
         {
             _scancodes.push_back(0x1E);
             break;
         }
-        case SDL_SCANCODE_B:
+        case sf::Keyboard::Scancode::B:
         {
             _scancodes.push_back(0x30);
             break;
         }
-        case SDL_SCANCODE_C:
+        case sf::Keyboard::Scancode::C:
         {
             _scancodes.push_back(0x2E);
             break;
         }
-        case SDL_SCANCODE_D:
+        case sf::Keyboard::Scancode::D:
         {
             _scancodes.push_back(0x20);
             break;
         }
-        case SDL_SCANCODE_E:
+        case sf::Keyboard::Scancode::E:
         {
             _scancodes.push_back(0x12);
             break;
         }
-        case SDL_SCANCODE_F:
+        case sf::Keyboard::Scancode::F:
         {
             _scancodes.push_back(0x21);
             break;
         }
-        case SDL_SCANCODE_G:
+        case sf::Keyboard::Scancode::G:
         {
             _scancodes.push_back(0x22);
             break;
         }
-        case SDL_SCANCODE_H:
+        case sf::Keyboard::Scancode::H:
         {
             _scancodes.push_back(0x23);
             break;
         }
-        case SDL_SCANCODE_I:
+        case sf::Keyboard::Scancode::I:
         {
             _scancodes.push_back(0x17);
             break;
         }
-        case SDL_SCANCODE_J:
+        case sf::Keyboard::Scancode::J:
         {
             _scancodes.push_back(0x24);
             break;
         }
-        case SDL_SCANCODE_K:
+        case sf::Keyboard::Scancode::K:
         {
             _scancodes.push_back(0x25);
             break;
         }
-        case SDL_SCANCODE_L:
+        case sf::Keyboard::Scancode::L:
         {
             _scancodes.push_back(0x26);
             break;
         }
-        case SDL_SCANCODE_M:
+        case sf::Keyboard::Scancode::M:
         {
             _scancodes.push_back(0x32);
             break;
         }
-        case SDL_SCANCODE_N:
+        case sf::Keyboard::Scancode::N:
         {
             _scancodes.push_back(0x31);
             break;
         }
-        case SDL_SCANCODE_O:
+        case sf::Keyboard::Scancode::O:
         {
             _scancodes.push_back(0x18);
             break;
         }
-        case SDL_SCANCODE_P:
+        case sf::Keyboard::Scancode::P:
         {
             _scancodes.push_back(0x19);
             break;
         }
-        case SDL_SCANCODE_Q:
+        case sf::Keyboard::Scancode::Q:
         {
             _scancodes.push_back(0x10);
             break;
         }
-        case SDL_SCANCODE_R:
+        case sf::Keyboard::Scancode::R:
         {
             _scancodes.push_back(0x13);
             break;
         }
-        case SDL_SCANCODE_S:
+        case sf::Keyboard::Scancode::S:
         {
             _scancodes.push_back(0x1F);
             break;
         }
-        case SDL_SCANCODE_T:
+        case sf::Keyboard::Scancode::T:
         {
             _scancodes.push_back(0x14);
             break;
         }
-        case SDL_SCANCODE_U:
+        case sf::Keyboard::Scancode::U:
         {
             _scancodes.push_back(0x16);
             break;
         }
-        case SDL_SCANCODE_V:
+        case sf::Keyboard::Scancode::V:
         {
             _scancodes.push_back(0x2F);
             break;
         }
-        case SDL_SCANCODE_W:
+        case sf::Keyboard::Scancode::W:
         {
             _scancodes.push_back(0x11);
             break;
         }
-        case SDL_SCANCODE_X:
+        case sf::Keyboard::Scancode::X:
         {
             _scancodes.push_back(0x2D);
             break;
         }
-        case SDL_SCANCODE_Y:
+        case sf::Keyboard::Scancode::Y:
         {
             _scancodes.push_back(0x15);
             break;
         }
-        case SDL_SCANCODE_Z:
+        case sf::Keyboard::Scancode::Z:
         {
             _scancodes.push_back(0x2C);
             break;
         }
-        case SDL_SCANCODE_0:
+        case sf::Keyboard::Scancode::Num0:
         {
             _scancodes.push_back(0x0B);
             break;
         }
-        case SDL_SCANCODE_1:
+        case sf::Keyboard::Scancode::Num1:
         {
             _scancodes.push_back(0x02);
             break;
         }
-        case SDL_SCANCODE_2:
+        case sf::Keyboard::Scancode::Num2:
         {
             _scancodes.push_back(0x03);
             break;
         }
-        case SDL_SCANCODE_3:
+        case sf::Keyboard::Scancode::Num3:
         {
             _scancodes.push_back(0x04);
             break;
         }
-        case SDL_SCANCODE_4:
+        case sf::Keyboard::Scancode::Num4:
         {
             _scancodes.push_back(0x05);
             break;
         }
-        case SDL_SCANCODE_5:
+        case sf::Keyboard::Scancode::Num5:
         {
             _scancodes.push_back(0x06);
             break;
         }
-        case SDL_SCANCODE_6:
+        case sf::Keyboard::Scancode::Num6:
         {
             _scancodes.push_back(0x07);
             break;
         }
-        case SDL_SCANCODE_7:
+        case sf::Keyboard::Scancode::Num7:
         {
             _scancodes.push_back(0x08);
             break;
         }
-        case SDL_SCANCODE_8:
+        case sf::Keyboard::Scancode::Num8:
         {
             _scancodes.push_back(0x09);
             break;
         }
-        case SDL_SCANCODE_9:
+        case sf::Keyboard::Scancode::Num9:
         {
             _scancodes.push_back(0x0A);
             break;
         }
-        case SDL_SCANCODE_GRAVE:
+        case sf::Keyboard::Scancode::Grave:
         {
             _scancodes.push_back(0x29);
             break;
         }
-        case SDL_SCANCODE_MINUS:
+        case sf::Keyboard::Scancode::NumpadMinus:
         {
             _scancodes.push_back(0x0C);
             break;
         }
-        case SDL_SCANCODE_EQUALS:
+        case sf::Keyboard::Scancode::Equal:
         {
             _scancodes.push_back(0x0D);
             break;
         }
-        case SDL_SCANCODE_BACKSLASH:
+        case sf::Keyboard::Scancode::Backslash:
         {
             _scancodes.push_back(0x2B);
             break;
         }
-        case SDL_SCANCODE_BACKSPACE:
+        case sf::Keyboard::Scancode::Backspace:
         {
             _scancodes.push_back(0x0E);
             break;
         }
-        case SDL_SCANCODE_SPACE:
+        case sf::Keyboard::Scancode::Space:
         {
             _scancodes.push_back(0x39);
             break;
         }
-        case SDL_SCANCODE_TAB:
+        case sf::Keyboard::Scancode::Tab:
         {
             _scancodes.push_back(0x0F);
             break;
         }
-        case SDL_SCANCODE_CAPSLOCK:
+        case sf::Keyboard::Scancode::CapsLock:
         {
             _scancodes.push_back(0x3A);
             break;
         }
-        case SDL_SCANCODE_LSHIFT:
+        case sf::Keyboard::Scancode::LShift:
         {
             _scancodes.push_back(0x2A);
             break;
         }
-        case SDL_SCANCODE_LCTRL:
+        case sf::Keyboard::Scancode::LControl:
         {
             _scancodes.push_back(0x1D);
             break;
         }
-        case SDL_SCANCODE_LALT:
+        case sf::Keyboard::Scancode::LAlt:
         {
             _scancodes.push_back(0x38);
             break;
         }
-        case SDL_SCANCODE_F1:
+        case sf::Keyboard::Scancode::F1:
         {
             _scancodes.push_back(0x3b);
             break;
         }
-        case SDL_SCANCODE_F2:
+        case sf::Keyboard::Scancode::F2:
         {
             _scancodes.push_back(0x3c);
             break;
         }
-        case SDL_SCANCODE_F3:
+        case sf::Keyboard::Scancode::F3:
         {
             _scancodes.push_back(0x3d);
             break;
         }
-        case SDL_SCANCODE_F4:
+        case sf::Keyboard::Scancode::F4:
         {
             _scancodes.push_back(0x3e);
             break;
         }
-        case SDL_SCANCODE_F5:
+        case sf::Keyboard::Scancode::F5:
         {
             _scancodes.push_back(0x3f);
             break;
         }
-        case SDL_SCANCODE_F6:
+        case sf::Keyboard::Scancode::F6:
         {
             _scancodes.push_back(0x40);
             break;
         }
-        case SDL_SCANCODE_F7:
+        case sf::Keyboard::Scancode::F7:
         {
             _scancodes.push_back(0x41);
             break;
         }
-        case SDL_SCANCODE_F8:
+        case sf::Keyboard::Scancode::F8:
         {
             _scancodes.push_back(0x42);
             break;
         }
-        case SDL_SCANCODE_F9:
+        case sf::Keyboard::Scancode::F9:
         {
             _scancodes.push_back(0x43);
             break;
         }
-        case SDL_SCANCODE_F10:
+        case sf::Keyboard::Scancode::F10:
         {
             _scancodes.push_back(0x44);
             break;
         }
-        case SDL_SCANCODE_F11:
+        case sf::Keyboard::Scancode::F11:
         {
             _scancodes.push_back(0x57);
             break;
         }
-        case SDL_SCANCODE_F12:
+        case sf::Keyboard::Scancode::F12:
         {
             _scancodes.push_back(0x58);
             break;
         }
-        case SDL_SCANCODE_UP:
+        case sf::Keyboard::Scancode::Up:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x48);
             break;
         }
-        case SDL_SCANCODE_DOWN:
+        case sf::Keyboard::Scancode::Down:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x50);
             break;
         }
-        case SDL_SCANCODE_LEFT:
+        case sf::Keyboard::Scancode::Left:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x4B);
             break;
         }
-        case SDL_SCANCODE_RIGHT:
+        case sf::Keyboard::Scancode::Right:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x4D);
             break;
         }
-        case SDL_SCANCODE_PERIOD:
+        case sf::Keyboard::Scancode::Period:
         {
             _scancodes.push_back(0x34);
             break;
         }
-        case SDL_SCANCODE_INSERT:
+        case sf::Keyboard::Scancode::Insert:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x52);
             break;
         }
-        case SDL_SCANCODE_HOME:
+        case sf::Keyboard::Scancode::Home:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x47);
             break;
         }
-        case SDL_SCANCODE_PAGEUP:
+        case sf::Keyboard::Scancode::PageUp:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x49);
             break;
         }
-        case SDL_SCANCODE_DELETE:
+        case sf::Keyboard::Scancode::Delete:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x53);
             break;
         }
-        case SDL_SCANCODE_END:
+        case sf::Keyboard::Scancode::End:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x4F);
             break;
         }
-        case SDL_SCANCODE_PAGEDOWN:
+        case sf::Keyboard::Scancode::PageDown:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x51);
             break;
         }
-        case SDL_SCANCODE_RCTRL:
+        case sf::Keyboard::Scancode::RControl:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x1D);
             break;
         }
-        case SDL_SCANCODE_RGUI:
+        case sf::Keyboard::Scancode::RSystem:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x5C);
 
             break;
         }
-        case SDL_SCANCODE_RALT:
+        case sf::Keyboard::Scancode::RAlt:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x38);
 
             break;
         }
-        case SDL_SCANCODE_APPLICATION:
+        case sf::Keyboard::Scancode::Application:
         {
             _scancodes.push_back(0xE0);
             _scancodes.push_back(0x5D);
             break;
         }
-        case SDL_SCANCODE_LEFTBRACKET:
+        case sf::Keyboard::Scancode::LBracket:
         {
             _scancodes.push_back(0x1A);
             break;
         }
-        case SDL_SCANCODE_RIGHTBRACKET:
+        case sf::Keyboard::Scancode::RBracket:
         {
             _scancodes.push_back(0x1B);
             break;
         }
-        case SDL_SCANCODE_SEMICOLON:
+        case sf::Keyboard::Scancode::Semicolon:
         {
             _scancodes.push_back(0x27);
             break;
         }
-        case SDL_SCANCODE_COMMA:
+        case sf::Keyboard::Scancode::Comma:
         {
             _scancodes.push_back(0x33);
             break;
         }
-        case SDL_SCANCODE_SLASH:
+        case sf::Keyboard::Scancode::Slash:
         {
             _scancodes.push_back(0x35);
             break;
         }
-        case SDL_SCANCODE_APOSTROPHE:
+        case sf::Keyboard::Scancode::Apostrophe:
         {
             _scancodes.push_back(0x28);
             break;
         }
-        case SDL_SCANCODE_NUMLOCKCLEAR:
+        case sf::Keyboard::Scancode::NumLock:
         {
             _scancodes.push_back(0x45);
             break;
         }
         }
 
-        if (event.type == SDL_EVENT_KEY_UP && !_scancodes.empty())
+        if (event->is<sf::Event::KeyReleased>() && !_scancodes.empty())
         {
             _scancodes.back() += 0x80;
         }

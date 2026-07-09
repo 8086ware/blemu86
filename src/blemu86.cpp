@@ -1,5 +1,4 @@
 #include "blemu86.h"
-#include <SDL3/SDL.h>
 #include <string>
 
 bool Blemu86::loop()
@@ -28,23 +27,13 @@ bool Blemu86::loop()
 	return true;
 }
 
-bool exit_callback(void* userdata, SDL_Event* event)
-{
-	if (event->type == SDL_EVENT_QUIT)
-	{
-		reinterpret_cast<Blemu86*>(userdata)->~Blemu86();
-		exit(0);
-	}
-
-	return true;
-}
 
 Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_name)
 {
 	srand(time(NULL)); // needed for some things
 
 	new_clock_device(&_keyboard, 15000);
-	new_clock_device(&_cga, 200);
+	new_clock_device(&_cga, 60);
 	new_clock_device(&_pit, 1193182);
 
 	_bus.new_io_device(&_cga);
@@ -56,22 +45,8 @@ Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_
 	_bus.new_io_device(&_dma);
 	_bus.new_io_device(&_fdc);
 
-	if (!SDL_WasInit(SDL_INIT_VIDEO))
-	{
-		SDL_Init(SDL_INIT_VIDEO);
-	}
-
-	SDL_AddEventWatch(exit_callback, this);
-
-	_fdds[0].insert("osall.img");
+	_fdds[0].insert("codegolf.bin");
 	_cpu.set_last_tick(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-}
-
-Blemu86::~Blemu86()
-{
-	SDL_DestroyRenderer(_win_render);
-	SDL_DestroyWindow(_win);
-	SDL_Quit();
 }
 
 void Blemu86::new_clock_device(Clock_Device* device, double hz)

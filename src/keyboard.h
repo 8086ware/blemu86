@@ -1,7 +1,7 @@
 #pragma once
 
 #include "device.h"
-#include <SDL3/SDL.h>
+#include <SFML/Graphics.hpp>
 #include "chipset/ppi.h"
 #include <vector>
 
@@ -11,8 +11,10 @@ class Keyboard : public Clock_Device
 
 	PPI& _ppi;
 	PIC& _pic;
+
+	sf::Window& _win;
 public:
 	void cycle() override;
 
-	Keyboard(PPI& ppi, PIC& pic);
+	Keyboard(sf::Window& win, PPI& ppi, PIC& pic);
 };

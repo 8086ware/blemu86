@@ -55,8 +55,8 @@ public:
 
 	int get_type_id() { return std::to_underlying(_type); }
 
-	bool write(uint8_t* data, size_t size);
-	bool read(uint8_t* data, size_t size);
+	bool write(std::span<uint8_t> data);
+	bool read(std::span<uint8_t> data);
 
 	bool insert(std::string_view file_name);
 };

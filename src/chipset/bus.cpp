@@ -3,7 +3,7 @@
 #include "device.h"
 #include <memory>
 
-Bus::Bus(std::shared_ptr<uint8_t[]>& ram) : _ram{ ram }
+Bus::Bus(std::span<uint8_t> ram) : _ram{ ram }
 {
 	std::println("[Bus] Init...");
 }

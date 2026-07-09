@@ -1,6 +1,7 @@
 #pragma once
 #include "device.h"
 #include "chipset/bus.h"
+#include <span>
 
 class DMA : public IO_Device
 {
@@ -83,7 +84,7 @@ public:
 	bool write(int address, uint8_t data, bool io) override;
 	std::optional<uint8_t> read(int address, bool io) override;
 
-	void operation(int channel, std::unique_ptr<uint8_t[]>& data);
+	void operation(int channel, std::span<uint8_t> data);
 
 	DMA(Bus& bus);
 };

@@ -4,13 +4,14 @@
 #include <vector>
 #include "device.h"
 #include <array>
+#include <span>
 
 class Bus
 {
 	std::vector<IO_Device*> _io_devices{};
-	std::shared_ptr<uint8_t[]> _ram{};
+	std::span<uint8_t> _ram{};
 public:
-	Bus(std::shared_ptr<uint8_t[]>& ram);
+	Bus(std::span<uint8_t> ram);
 
 	uint8_t read8(int address, bool io);
 	uint16_t read16(int address, bool io);

@@ -195,8 +195,6 @@ bool FDC::write(int address, uint8_t data, bool io)
 
 					_data[6] = bytes_per_sector;
 
-					int mt_read{1};
-
 					if (_data[0] & 0x80) // multi track read
 					{
 						mt_read = 2;
@@ -222,7 +220,7 @@ bool FDC::write(int address, uint8_t data, bool io)
 						_selected_fdd->read(&fdd_buffer.get()[(end_of_track - (sector_number - 1)) * bytes_read - 1], (end_of_track - (sector_number - 1)) * bytes_read);
 					}
 
-					_dma.operation(2, fdd_buffer);
+					_dma.operation(2, { fdd_buffer.get(), ((end_of_track - (sector_number - 1)) * bytes_read) * mt_read_multiplier});
 
 					_data_bytes = 7;
 

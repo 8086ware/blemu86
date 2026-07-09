@@ -217,11 +217,14 @@ std::optional<uint8_t> DMA::read(int address, bool io)
 	return std::nullopt;
 }
 
-void DMA::operation(int channel, std::unique_ptr<uint8_t[]>& data) // A dreq...
+void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 {
-	for (int i{}; i < (_channels[channel].base_word + 1); i++)
+	uint8_t* temp{ data.data() };
+
+	while(_channels[channel].current_word != 0xffff)
 	{
-		_bus.write8(_channels[channel].current_address, data[i], false);
+		_bus.write8(_channels[channel].current_address, *temp, false);
+		temp++;
 
 		if (_channels[channel].mode & DMA::mode_flag_decrement_select)
 		{
@@ -232,9 +235,9 @@ void DMA::operation(int channel, std::unique_ptr<uint8_t[]>& data) // A dreq...
 		{
 			_channels[channel].current_address++;
 		}
-	} // Terminal count/EOP
 
-	_channels[channel].current_word = 0xffff;
+		_channels[channel].current_word--;
+	} // Terminal count/EOP
 
 	if (_channels[channel].mode & DMA::mode_flag_autoinitialization)
 	{

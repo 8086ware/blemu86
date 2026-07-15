@@ -220,7 +220,7 @@ void CPU::Instruction::Operand::operator-=(Operand value)
 
 void CPU::Instruction::Operand::operator&=(uint16_t value)
 {
-	_cpu.get_reg16(Registers::Flags) &= ~(flag_overflow | flag_carry);
+	_cpu.get_reg(Registers::Flags) &= ~(flag_overflow | flag_carry);
 
 	if (_width)
 	{
@@ -267,7 +267,7 @@ void CPU::Instruction::Operand::operator&=(Operand value)
 
 void CPU::Instruction::Operand::operator|=(uint16_t value)
 {
-	_cpu.get_reg16(Registers::Flags) &= ~(flag_overflow | flag_carry);
+	_cpu.get_reg(Registers::Flags) &= ~(flag_overflow | flag_carry);
 
 	if (_width)
 	{
@@ -315,7 +315,7 @@ void CPU::Instruction::Operand::operator|=(Operand value)
 
 void CPU::Instruction::Operand::operator^=(uint16_t value)
 {
-	_cpu.get_reg16(Registers::Flags) &= ~(flag_overflow | flag_carry);
+	_cpu.get_reg(Registers::Flags) &= ~(flag_overflow | flag_carry);
 
 	if (_width)
 	{
@@ -366,31 +366,31 @@ void CPU::Instruction::Operand::operator<<=(uint8_t value)
 	{
 		if ((get_val16() << (value - 1)) & 0x8000)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 		
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val16(get_val16() << value);
 
 		if (value == 1)
 		{
-			if ((get_val16() & 0x8000) && (_cpu.get_reg16(Registers::Flags) & flag_carry))
+			if ((get_val16() & 0x8000) && (_cpu.get_reg(Registers::Flags) & flag_carry))
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_overflow;
+				_cpu.get_reg(Registers::Flags) |= flag_overflow;
 			}
 
-			else if(!(get_val16() & 0x8000) && !(_cpu.get_reg16(Registers::Flags) & flag_carry))
+			else if(!(get_val16() & 0x8000) && !(_cpu.get_reg(Registers::Flags) & flag_carry))
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_overflow;
+				_cpu.get_reg(Registers::Flags) |= flag_overflow;
 			}
 
 			else
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_overflow;
+				_cpu.get_reg(Registers::Flags) &= ~flag_overflow;
 			}
 		}
 
@@ -403,12 +403,12 @@ void CPU::Instruction::Operand::operator<<=(uint8_t value)
 	{
 		if ((get_val8() << (value - 1)) & 0x80)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val8(get_val8() << value);
@@ -417,12 +417,12 @@ void CPU::Instruction::Operand::operator<<=(uint8_t value)
 		{
 			if (get_val8() & 0x80)
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_overflow;
+				_cpu.get_reg(Registers::Flags) |= flag_overflow;
 			}
 
 			else
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_overflow;
+				_cpu.get_reg(Registers::Flags) &= ~flag_overflow;
 			}
 		}
 
@@ -456,24 +456,24 @@ void CPU::Instruction::Operand::operator>>=(uint8_t value)
 	{
 		if ((get_val16() >> (value - 1)) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		if (value == 1)
 		{
 			if (get_val16() & 0x8000)
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_overflow;
+				_cpu.get_reg(Registers::Flags) |= flag_overflow;
 			}
 
 			else
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_overflow;
+				_cpu.get_reg(Registers::Flags) &= ~flag_overflow;
 			}
 		}
 
@@ -488,24 +488,24 @@ void CPU::Instruction::Operand::operator>>=(uint8_t value)
 	{
 		if ((get_val8() >> (value - 1)) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		if (value == 1)
 		{
 			if (get_val8() & 0x80)
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_overflow;
+				_cpu.get_reg(Registers::Flags) |= flag_overflow;
 			}
 
 			else
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_overflow;
+				_cpu.get_reg(Registers::Flags) &= ~flag_overflow;
 			}
 		}
 
@@ -541,17 +541,17 @@ void CPU::Instruction::Operand::sar(uint8_t value)
 	{
 		if ((get_val16() >> (value - 1)) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		if (value == 1)
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_overflow;
+			_cpu.get_reg(Registers::Flags) &= ~flag_overflow;
 		}
 
 		bool msb{ static_cast<bool>(get_val16() & 0x8000) };
@@ -580,17 +580,17 @@ void CPU::Instruction::Operand::sar(uint8_t value)
 	{
 		if ((get_val8() >> (value - 1)) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		if (value == 1)
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_overflow;
+			_cpu.get_reg(Registers::Flags) &= ~flag_overflow;
 		}
 
 		bool msb{ static_cast<bool>(get_val8() & 0x80)};
@@ -640,12 +640,12 @@ void CPU::Instruction::Operand::neg()
 	{
 		if (get_val16() != 0)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val16(-get_val16());
@@ -655,12 +655,12 @@ void CPU::Instruction::Operand::neg()
 	{
 		if (get_val8() != 0)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val8(-get_val8());
@@ -671,18 +671,18 @@ void CPU::Instruction::Operand::div()
 {
 	if (_width)
 	{
-		uint32_t val_to_divide{ static_cast<uint32_t>(_cpu.get_reg16(Registers::DX) << 16 | _cpu.get_reg16(Registers::AX)) }; // dx:ax
+		uint32_t val_to_divide{ static_cast<uint32_t>(_cpu.get_reg(Registers::DX) << 16 | _cpu.get_reg(Registers::AX)) }; // dx:ax
 
-		_cpu.get_reg16(Registers::AX) = static_cast<uint16_t>(val_to_divide / get_val16());
-		_cpu.get_reg16(Registers::DX) = static_cast<uint16_t>(val_to_divide % get_val16());
+		_cpu.get_reg(Registers::AX) = static_cast<uint16_t>(val_to_divide / get_val16());
+		_cpu.get_reg(Registers::DX) = static_cast<uint16_t>(val_to_divide % get_val16());
 	}
 
 	else
 	{
-		uint16_t val_to_divide{ _cpu.get_reg16(Registers::AX) }; // dx:ax
+		uint16_t val_to_divide{ _cpu.get_reg(Registers::AX) }; // dx:ax
 
-		_cpu.get_reg8(Registers_8::AL) = static_cast<uint8_t>(val_to_divide / get_val8());
-		_cpu.get_reg8(Registers_8::AH) = static_cast<uint8_t>(val_to_divide % get_val8());
+		_cpu.get_reg(Registers_8::AL) = static_cast<uint8_t>(val_to_divide / get_val8());
+		_cpu.get_reg(Registers_8::AH) = static_cast<uint8_t>(val_to_divide % get_val8());
 	}
 }
 
@@ -690,34 +690,34 @@ void CPU::Instruction::Operand::mul()
 {
 	if (_width)
 	{
-		uint32_t product{ static_cast<uint32_t>(_cpu.get_reg16(Registers::AX) * get_val16()) };
+		uint32_t product{ static_cast<uint32_t>(_cpu.get_reg(Registers::AX) * get_val16()) };
 
-		_cpu.get_reg16(Registers::DX) = static_cast<uint16_t>(product >> 16);
-		_cpu.get_reg16(Registers::AX) = static_cast<uint16_t>(product & 0x0000ffff);
+		_cpu.get_reg(Registers::DX) = static_cast<uint16_t>(product >> 16);
+		_cpu.get_reg(Registers::AX) = static_cast<uint16_t>(product & 0x0000ffff);
 
-		if (_cpu.get_reg16(Registers::DX) == 0)
+		if (_cpu.get_reg(Registers::DX) == 0)
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~(flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) &= ~(flag_carry | flag_overflow);
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) |= (flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) |= (flag_carry | flag_overflow);
 		}
 	}
 	
 	else
 	{
-		_cpu.get_reg16(Registers::AX) = _cpu.get_reg8(Registers_8::AL) * get_val8();
+		_cpu.get_reg(Registers::AX) = _cpu.get_reg(Registers_8::AL) * get_val8();
 
-		if (_cpu.get_reg8(Registers_8::AH) == 0)
+		if (_cpu.get_reg(Registers_8::AH) == 0)
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~(flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) &= ~(flag_carry | flag_overflow);
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) |= (flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) |= (flag_carry | flag_overflow);
 		}
 	}
 }
@@ -728,12 +728,12 @@ void CPU::Instruction::Operand::rol(uint8_t value) // IMPLEMENT OF FLAG
 	{
 		if (std::rotl(get_val16(), value - 1) & 0x8000)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val16(std::rotl(get_val16(), value));
@@ -743,12 +743,12 @@ void CPU::Instruction::Operand::rol(uint8_t value) // IMPLEMENT OF FLAG
 	{
 		if (std::rotl(get_val8(), value - 1) & 0x80)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val8(std::rotl(get_val8(), value));
@@ -773,12 +773,12 @@ void CPU::Instruction::Operand::ror(uint8_t value) // IMPLEMENT OF FLAG
 	{
 		if (std::rotr(get_val16(), value - 1) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val16(std::rotr(get_val16(), value));
@@ -788,12 +788,12 @@ void CPU::Instruction::Operand::ror(uint8_t value) // IMPLEMENT OF FLAG
 	{
 		if (std::rotr(get_val8(), value - 1) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val8(std::rotr(get_val8(), value));
@@ -814,18 +814,18 @@ void CPU::Instruction::Operand::ror(Operand value)
 
 void CPU::Instruction::Operand::rcl(uint8_t value)
 {
-	bool old_cf{ static_cast<bool>(_cpu.get_reg16(Registers::Flags) & flag_carry) };
+	bool old_cf{ static_cast<bool>(_cpu.get_reg(Registers::Flags) & flag_carry) };
 
 	if (_width)
 	{
 		if (std::rotl(get_val16(), value - 1) & 0x8000)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val16(std::rotl(get_val16(), value));
@@ -840,12 +840,12 @@ void CPU::Instruction::Operand::rcl(uint8_t value)
 	{
 		if (std::rotl(get_val8(), value - 1) & 0x80)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val8(std::rotl(get_val8(), value));
@@ -871,18 +871,18 @@ void CPU::Instruction::Operand::rcl(Operand value)
 
 void CPU::Instruction::Operand::rcr(uint8_t value)
 {
-	bool old_cf{ static_cast<bool>(_cpu.get_reg16(Registers::Flags) & flag_carry) };
+	bool old_cf{ static_cast<bool>(_cpu.get_reg(Registers::Flags) & flag_carry) };
 
 	if (_width)
 	{
 		if (std::rotr(get_val16(), value - 1) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val16(std::rotr(get_val16(), value));
@@ -897,12 +897,12 @@ void CPU::Instruction::Operand::rcr(uint8_t value)
 	{
 		if (std::rotr(get_val8(), value - 1) & 0x1)
 		{
-			_cpu.get_reg16(Registers::Flags) |= flag_carry;
+			_cpu.get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+			_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 		}
 
 		write_val8(std::rotr(get_val8(), value));
@@ -931,34 +931,34 @@ void CPU::Instruction::Operand::imul()
 {
 	if (_width)
 	{
-		int32_t product{ static_cast<int16_t>(_cpu.get_reg16(Registers::AX)) * static_cast<int16_t>(get_val16()) };
+		int32_t product{ static_cast<int16_t>(_cpu.get_reg(Registers::AX)) * static_cast<int16_t>(get_val16()) };
 
-		_cpu.get_reg16(Registers::DX) = static_cast<int16_t>(product >> 16);
-		_cpu.get_reg16(Registers::AX) = static_cast<int16_t>(product & 0x0000ffff);
+		_cpu.get_reg(Registers::DX) = static_cast<int16_t>(product >> 16);
+		_cpu.get_reg(Registers::AX) = static_cast<int16_t>(product & 0x0000ffff);
 
-		if (_cpu.get_reg16(Registers::DX) == 0 || _cpu.get_reg16(Registers::DX) == 0xffff)
+		if (_cpu.get_reg(Registers::DX) == 0 || _cpu.get_reg(Registers::DX) == 0xffff)
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~(flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) &= ~(flag_carry | flag_overflow);
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) |= (flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) |= (flag_carry | flag_overflow);
 		}
 	}
 
 	else
 	{
-		_cpu.get_reg16(Registers::AX) = static_cast<int8_t>(_cpu.get_reg8(Registers_8::AL)) * static_cast<int8_t>(get_val8());
+		_cpu.get_reg(Registers::AX) = static_cast<int8_t>(_cpu.get_reg(Registers_8::AL)) * static_cast<int8_t>(get_val8());
 
-		if (_cpu.get_reg8(Registers_8::AH) == 0 || _cpu.get_reg8(Registers_8::AH) == 0xff)
+		if (_cpu.get_reg(Registers_8::AH) == 0 || _cpu.get_reg(Registers_8::AH) == 0xff)
 		{
-			_cpu.get_reg16(Registers::Flags) &= ~(flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) &= ~(flag_carry | flag_overflow);
 		}
 
 		else
 		{
-			_cpu.get_reg16(Registers::Flags) |= (flag_carry | flag_overflow);
+			_cpu.get_reg(Registers::Flags) |= (flag_carry | flag_overflow);
 		}
 	}
 }
@@ -972,17 +972,17 @@ void CPU::Instruction::Operand::idiv()
 {
 	if (_width)
 	{
-		int32_t val_to_divide{ static_cast<int32_t>(_cpu.get_reg16(Registers::DX) << 16 | _cpu.get_reg16(Registers::AX)) }; // dx:ax
+		int32_t val_to_divide{ static_cast<int32_t>(_cpu.get_reg(Registers::DX) << 16 | _cpu.get_reg(Registers::AX)) }; // dx:ax
 
-		_cpu.get_reg16(Registers::AX) = static_cast<int16_t>(val_to_divide / get_val16());
-		_cpu.get_reg16(Registers::DX) = static_cast<int16_t>(val_to_divide % get_val16());
+		_cpu.get_reg(Registers::AX) = static_cast<int16_t>(val_to_divide / get_val16());
+		_cpu.get_reg(Registers::DX) = static_cast<int16_t>(val_to_divide % get_val16());
 	}
 
 	else
 	{
-		int32_t val_to_divide{ _cpu.get_reg16(Registers::AX) }; // dx:ax
+		int32_t val_to_divide{ _cpu.get_reg(Registers::AX) }; // dx:ax
 
-		_cpu.get_reg8(Registers_8::AL) = static_cast<int8_t>(val_to_divide / get_val8());
-		_cpu.get_reg8(Registers_8::AH) = static_cast<int8_t>(val_to_divide % get_val8());
+		_cpu.get_reg(Registers_8::AL) = static_cast<int8_t>(val_to_divide / get_val8());
+		_cpu.get_reg(Registers_8::AH) = static_cast<int8_t>(val_to_divide % get_val8());
 	}
 }

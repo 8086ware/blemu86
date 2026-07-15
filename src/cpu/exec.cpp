@@ -12,7 +12,7 @@ void CPU::Instruction::exec()
 
 	if (_cpu._sti_enable)
 	{
-		_cpu.get_reg16(Registers::Flags) |= flag_interrupt;
+		_cpu.get_reg(Registers::Flags) |= flag_interrupt;
 		_cpu._sti_enable = false;
 	}
 
@@ -24,7 +24,7 @@ void CPU::Instruction::exec()
 		{
 			if (_cpu._zero_flag_check) // this is for instructions that check if the zero flag is on, but it uses the same rep prefix byte.
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_zero) && _cpu.get_reg16(Registers::CX) != 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_zero) && _cpu.get_reg(Registers::CX) != 0)
 				{
 					increase_ip = false;
 					dec_cx = true;
@@ -40,7 +40,7 @@ void CPU::Instruction::exec()
 
 			else
 			{
-				if (_cpu.get_reg16(Registers::CX) != 0)
+				if (_cpu.get_reg(Registers::CX) != 0)
 				{
 					dec_cx = true;
 					increase_ip = false;
@@ -56,7 +56,7 @@ void CPU::Instruction::exec()
 
 		case CPU_Opcode::PREFIX_REPNE:
 		{
-			if ((_cpu.get_reg16(Registers::Flags) & flag_zero) == 0 && _cpu.get_reg16(Registers::CX) != 0)
+			if ((_cpu.get_reg(Registers::Flags) & flag_zero) == 0 && _cpu.get_reg(Registers::CX) != 0)
 			{
 				increase_ip = false;
 				dec_cx = true;
@@ -79,7 +79,7 @@ void CPU::Instruction::exec()
 			{
 				if (_width)
 				{
-					if (_reg->get_addr16() == &_cpu.get_reg16(static_cast<Registers>(i)))
+					if (_reg->get_addr16() == &_cpu.get_reg(static_cast<Registers>(i)))
 					{
 						group_opcode_instruction = i;
 						break;
@@ -88,7 +88,7 @@ void CPU::Instruction::exec()
 
 				else
 				{
-					if (_reg->get_addr8() == &_cpu.get_reg8(static_cast<Registers_8>(i)))
+					if (_reg->get_addr8() == &_cpu.get_reg(static_cast<Registers_8>(i)))
 					{
 						group_opcode_instruction = i;
 						break;
@@ -109,13 +109,13 @@ void CPU::Instruction::exec()
 				}
 				case CPU_Group_Opcode_80::ADC_RM8_IMM8:
 				{
-					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 					*_regmem += temp;
 					break;
 				}
 				case CPU_Group_Opcode_80::SBB_RM8_IMM8:
 				{
-					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 					*_regmem -= temp;
 					break;
 				}
@@ -166,13 +166,13 @@ void CPU::Instruction::exec()
 				}
 				case CPU_Group_Opcode_81::ADC_RM16_IMM16:
 				{
-					uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+					uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 					*_regmem += temp;
 					break;
 				}
 				case CPU_Group_Opcode_81::SBB_RM16_IMM16:
 				{
-					uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+					uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 					*_regmem -= temp;
 					break;
 				}
@@ -223,13 +223,13 @@ void CPU::Instruction::exec()
 				}
 				case CPU_Group_Opcode_83::ADC_RM16_IMM8:
 				{
-					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry)) };
 					*_regmem += temp;
 					break;
 				}
 				case CPU_Group_Opcode_83::SBB_RM16_IMM8:
 				{
-					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+					uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry)) };
 					*_regmem -= temp;
 					break;
 				}
@@ -471,37 +471,37 @@ void CPU::Instruction::exec()
 				{
 				case CPU_Group_Opcode_D2::ROL_RM8_CL:
 				{
-					_regmem->rol(_cpu.get_reg8(Registers_8::CL));
+					_regmem->rol(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D2::ROR_RM8_CL:
 				{
-					_regmem->ror(_cpu.get_reg8(Registers_8::CL));
+					_regmem->ror(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D2::RCL_RM8_CL:
 				{
-					_regmem->rcl(_cpu.get_reg8(Registers_8::CL));
+					_regmem->rcl(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D2::RCR_RM8_CL:
 				{
-					_regmem->rcr(_cpu.get_reg8(Registers_8::CL));
+					_regmem->rcr(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D2::SAL_RM8_CL: // D0 mm
 				{
-					*_regmem <<= _cpu.get_reg8(Registers_8::CL);
+					*_regmem <<= _cpu.get_reg(Registers_8::CL);
 					break;
 				}
 				case CPU_Group_Opcode_D2::SAR_RM8_CL: // D0 mm
 				{
-					_regmem->sar(_cpu.get_reg8(Registers_8::CL));
+					_regmem->sar(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D2::SHR_RM8_CL: // D0 mm
 				{
-					*_regmem >>= _cpu.get_reg8(Registers_8::CL);
+					*_regmem >>= _cpu.get_reg(Registers_8::CL);
 					break;
 				}
 				default:
@@ -519,37 +519,37 @@ void CPU::Instruction::exec()
 				{
 				case CPU_Group_Opcode_D3::ROL_RM16_CL:
 				{
-					_regmem->rol(_cpu.get_reg8(Registers_8::CL));
+					_regmem->rol(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D3::ROR_RM16_CL:
 				{
-					_regmem->ror(_cpu.get_reg8(Registers_8::CL));
+					_regmem->ror(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D3::RCL_RM16_CL:
 				{
-					_regmem->rcl(_cpu.get_reg8(Registers_8::CL));
+					_regmem->rcl(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D3::RCR_RM16_CL:
 				{
-					_regmem->rcr(_cpu.get_reg8(Registers_8::CL));
+					_regmem->rcr(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D3::SAL_RM16_CL: // D0 mm
 				{
-					*_regmem <<= _cpu.get_reg8(Registers_8::CL);
+					*_regmem <<= _cpu.get_reg(Registers_8::CL);
 					break;
 				}
 				case CPU_Group_Opcode_D3::SAR_RM16_CL: // D0 mm
 				{
-					_regmem->sar(_cpu.get_reg8(Registers_8::CL));
+					_regmem->sar(_cpu.get_reg(Registers_8::CL));
 					break;
 				}
 				case CPU_Group_Opcode_D3::SHR_RM16_CL: // D0 mm
 				{
-					*_regmem >>= _cpu.get_reg8(Registers_8::CL);
+					*_regmem >>= _cpu.get_reg(Registers_8::CL);
 					break;
 				}
 				default:
@@ -687,28 +687,28 @@ void CPU::Instruction::exec()
 				}
 				case CPU_Group_Opcode_FF::CALL_RM16:
 				{
-					_cpu.push(_cpu.get_reg16(Registers::IP) + _length);
-					_cpu.get_reg16(Registers::IP) = _regmem->get_val16();
+					_cpu.push(_cpu.get_reg(Registers::IP) + _length);
+					_cpu.get_reg(Registers::IP) = _regmem->get_val16();
 					increase_ip = false;
 					break;
 				}
 				case CPU_Group_Opcode_FF::CALL_M16_16: // FF mm
 				{
 					_cpu.push(_cpu.get_sreg(Segment_Registers::CS));
-					_cpu.push(_cpu.get_reg16(Registers::IP) + _length);
+					_cpu.push(_cpu.get_reg(Registers::IP) + _length);
 
 					uint16_t offset{ _regmem->get_val16() };
 					_regmem->get_addr16()++;
 					uint16_t segment{ _regmem->get_val16() };
 
-					_cpu.get_reg16(Registers::IP) = offset;
+					_cpu.get_reg(Registers::IP) = offset;
 					_cpu.get_sreg(Segment_Registers::CS) = segment;
 					increase_ip = false;
 					break;
 				}
 				case CPU_Group_Opcode_FF::JMP_RM16: // FF mm dd dd
 				{
-					_cpu.get_reg16(Registers::IP) = _regmem->get_val16();
+					_cpu.get_reg(Registers::IP) = _regmem->get_val16();
 					increase_ip = false;
 					break;
 				}
@@ -718,7 +718,7 @@ void CPU::Instruction::exec()
 					_regmem->get_addr16()++;
 					uint16_t segment = _regmem->get_val16();
 
-					_cpu.get_reg16(Registers::IP) = offset;
+					_cpu.get_reg(Registers::IP) = offset;
 					_cpu.get_sreg(Segment_Registers::CS) = segment;
 					increase_ip = false;
 					break;
@@ -744,57 +744,57 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::AAD:
 			{
-				uint8_t tempal{ _cpu.get_reg8(Registers_8::AL) };
-				uint8_t tempah{ _cpu.get_reg8(Registers_8::AH) };
+				uint8_t tempal{ _cpu.get_reg(Registers_8::AL) };
+				uint8_t tempah{ _cpu.get_reg(Registers_8::AH) };
 
-				_cpu.get_reg8(Registers_8::AL) = (tempal + (tempah * _data1.data8[0])) & 0xff;
-				_cpu.get_reg8(Registers_8::AH) = 0;
+				_cpu.get_reg(Registers_8::AL) = (tempal + (tempah * _data1.data8[0])) & 0xff;
+				_cpu.get_reg(Registers_8::AH) = 0;
 
-				_cpu.modify_flag_sign(static_cast<int16_t>(_cpu.get_reg8(Registers_8::AL)), false);
-				_cpu.modify_flag_zero(static_cast<uint16_t>(_cpu.get_reg8(Registers_8::AL)));
-				_cpu.modify_flag_parity(_cpu.get_reg8(Registers_8::AL));
+				_cpu.modify_flag_sign(static_cast<int16_t>(_cpu.get_reg(Registers_8::AL)), false);
+				_cpu.modify_flag_zero(static_cast<uint16_t>(_cpu.get_reg(Registers_8::AL)));
+				_cpu.modify_flag_parity(_cpu.get_reg(Registers_8::AL));
 				break;
 			}
 			case CPU_Opcode::AAM:
 			{
-				uint8_t temp{ _cpu.get_reg8(Registers_8::AL) };
+				uint8_t temp{ _cpu.get_reg(Registers_8::AL) };
 
-				_cpu.get_reg8(Registers_8::AH) = temp / _data1.data8[0];
-				_cpu.get_reg8(Registers_8::AL) = temp % _data1.data8[0];
+				_cpu.get_reg(Registers_8::AH) = temp / _data1.data8[0];
+				_cpu.get_reg(Registers_8::AL) = temp % _data1.data8[0];
 
-				_cpu.modify_flag_sign(static_cast<int16_t>(_cpu.get_reg8(Registers_8::AL)), false);
-				_cpu.modify_flag_zero(static_cast<uint16_t>(_cpu.get_reg8(Registers_8::AL)));
-				_cpu.modify_flag_parity(_cpu.get_reg8(Registers_8::AL));
+				_cpu.modify_flag_sign(static_cast<int16_t>(_cpu.get_reg(Registers_8::AL)), false);
+				_cpu.modify_flag_zero(static_cast<uint16_t>(_cpu.get_reg(Registers_8::AL)));
+				_cpu.modify_flag_parity(_cpu.get_reg(Registers_8::AL));
 				break;
 			}
 			case CPU_Opcode::AAS:
 			{
-				if ((_cpu.get_reg8(Registers_8::AL) & 0xf) > 9 || _cpu.get_reg16(Registers::Flags) & flag_half_carry)
+				if ((_cpu.get_reg(Registers_8::AL) & 0xf) > 9 || _cpu.get_reg(Registers::Flags) & flag_half_carry)
 				{
-					_cpu.get_reg16(Registers::AX) -= 6;
-					_cpu.get_reg8(Registers_8::AH)--;
-					_cpu.get_reg16(Registers::Flags) |= flag_half_carry;
-					_cpu.get_reg16(Registers::Flags) |= flag_carry;
-					_cpu.get_reg8(Registers_8::AL) &= 0xf;
+					_cpu.get_reg(Registers::AX) -= 6;
+					_cpu.get_reg(Registers_8::AH)--;
+					_cpu.get_reg(Registers::Flags) |= flag_half_carry;
+					_cpu.get_reg(Registers::Flags) |= flag_carry;
+					_cpu.get_reg(Registers_8::AL) &= 0xf;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::Flags) &= ~flag_half_carry;
-					_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
-					_cpu.get_reg8(Registers_8::AL) &= 0xf;
+					_cpu.get_reg(Registers::Flags) &= ~flag_half_carry;
+					_cpu.get_reg(Registers::Flags) &= ~flag_carry;
+					_cpu.get_reg(Registers_8::AL) &= 0xf;
 				}
 				break;
 			}
 			case CPU_Opcode::ADC_AL_IMM8: // 04 ii
 			{
-				uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+				uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 				*_reg += temp;
 				break;
 			}
 			case CPU_Opcode::ADC_AX_IMM16: // 05 ii ii
 			{
-				uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+				uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 				*_reg += temp;
 				break;
 			}
@@ -807,13 +807,13 @@ void CPU::Instruction::exec()
 				{
 					if (_width)
 					{
-						uint16_t temp{ static_cast<uint16_t>(_regmem->get_val16() + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+						uint16_t temp{ static_cast<uint16_t>(_regmem->get_val16() + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 						*_reg += temp;
 					}
 
 					else
 					{
-						uint8_t temp{ static_cast<uint8_t>(_regmem->get_val8() + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+						uint8_t temp{ static_cast<uint8_t>(_regmem->get_val8() + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 						*_reg += temp;
 					}
 				}
@@ -822,13 +822,13 @@ void CPU::Instruction::exec()
 				{
 					if (_width)
 					{
-						uint16_t temp{ static_cast<uint16_t>(_reg->get_val16() + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+						uint16_t temp{ static_cast<uint16_t>(_reg->get_val16() + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 						*_regmem += temp;
 					}
 
 					else
 					{
-						uint8_t temp{ static_cast<uint8_t>(_reg->get_val8() + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+						uint8_t temp{ static_cast<uint8_t>(_reg->get_val8() + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 						*_regmem += temp;
 					}
 				}
@@ -882,63 +882,63 @@ void CPU::Instruction::exec()
 			case CPU_Opcode::CALL_PTR16_16: // 9A ii ii ii ii
 			{
 				_cpu.push(_cpu.get_sreg(Segment_Registers::CS));
-				_cpu.push(_cpu.get_reg16(Registers::IP) + _length);
+				_cpu.push(_cpu.get_reg(Registers::IP) + _length);
 
 				_cpu.get_sreg(Segment_Registers::CS) = _data1.data16;
-				_cpu.get_reg16(Registers::IP) = _data2.data16;
+				_cpu.get_reg(Registers::IP) = _data2.data16;
 
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::CALL_REL16: // E8 ii ii
 			{
-				_cpu.push(_cpu.get_reg16(Registers::IP) + _length);
+				_cpu.push(_cpu.get_reg(Registers::IP) + _length);
 
 				int16_t call_value{ static_cast<int16_t>(_data1.data16 + _length) };
 
-				_cpu.get_reg16(Registers::IP) += call_value;
+				_cpu.get_reg(Registers::IP) += call_value;
 
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::CBW:
 			{
-				if ((int8_t)_cpu.get_reg8(Registers_8::AL) < 0)
+				if ((int8_t)_cpu.get_reg(Registers_8::AL) < 0)
 				{
-					_cpu.get_reg8(Registers_8::AH) = 0xFF;
+					_cpu.get_reg(Registers_8::AH) = 0xFF;
 				}
 
 				else
 				{
-					_cpu.get_reg8(Registers_8::AH) = 0;
+					_cpu.get_reg(Registers_8::AH) = 0;
 				}
 				break;
 			}
 			case CPU_Opcode::CLC:
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+				_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 				break;
 			}
 			case CPU_Opcode::CLD:
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_direction;
+				_cpu.get_reg(Registers::Flags) &= ~flag_direction;
 				break;
 			}
 			case CPU_Opcode::CLI:
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~flag_interrupt;
+				_cpu.get_reg(Registers::Flags) &= ~flag_interrupt;
 				break;
 			}
 			case CPU_Opcode::CMC:
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_carry)
+				if (_cpu.get_reg(Registers::Flags) & flag_carry)
 				{
-					_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+					_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::Flags) |= flag_carry;
+					_cpu.get_reg(Registers::Flags) |= flag_carry;
 				}
 
 				break;
@@ -1000,21 +1000,21 @@ void CPU::Instruction::exec()
 			case CPU_Opcode::CMPSB:
 			{
 				Instruction::Operand temp{ _cpu, _width };
-				temp.get_addr8() = reinterpret_cast<uint8_t*>(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)));
+				temp.get_addr8() = reinterpret_cast<uint8_t*>(to_linear(_data_seg, _cpu.get_reg(Registers::SI)));
 				uint8_t temp_var{ temp.get_val8() };
-				temp -= _cpu._bus.read8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), false);
+				temp -= _cpu._bus.read8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), false);
 				temp = temp_var;
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI)--;
-					_cpu.get_reg16(Registers::DI)--;
+					_cpu.get_reg(Registers::SI)--;
+					_cpu.get_reg(Registers::DI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI)++;
-					_cpu.get_reg16(Registers::DI)++;
+					_cpu.get_reg(Registers::SI)++;
+					_cpu.get_reg(Registers::DI)++;
 				}
 
 				_cpu._zero_flag_check = true;
@@ -1023,21 +1023,21 @@ void CPU::Instruction::exec()
 			case CPU_Opcode::CMPSW:
 			{
 				Instruction::Operand temp{ _cpu, _width };
-				temp.get_addr16() = reinterpret_cast<uint16_t*>(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)));
+				temp.get_addr16() = reinterpret_cast<uint16_t*>(to_linear(_data_seg, _cpu.get_reg(Registers::SI)));
 				uint16_t temp_var{ temp.get_val16() };
-				temp -= _cpu._bus.read16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), false);
+				temp -= _cpu._bus.read16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), false);
 				temp = temp_var;
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI) -= 2;
-					_cpu.get_reg16(Registers::DI) -= 2;
+					_cpu.get_reg(Registers::SI) -= 2;
+					_cpu.get_reg(Registers::DI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI) += 2;
-					_cpu.get_reg16(Registers::DI) += 2;
+					_cpu.get_reg(Registers::SI) += 2;
+					_cpu.get_reg(Registers::DI) += 2;
 				}
 
 				_cpu._zero_flag_check = true;
@@ -1045,80 +1045,80 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::CWD:
 			{
-				if ((int16_t)_cpu.get_reg16(Registers::AX) < 0)
+				if ((int16_t)_cpu.get_reg(Registers::AX) < 0)
 				{
-					_cpu.get_reg16(Registers::DX) = 0xFFFF;
+					_cpu.get_reg(Registers::DX) = 0xFFFF;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DX) = 0;
+					_cpu.get_reg(Registers::DX) = 0;
 				}
 
 				break;
 			}
 			case CPU_Opcode::DAA:
 			{
-				uint8_t old_al{ _cpu.get_reg8(Registers_8::AL) };
-				bool old_cf{ static_cast<bool>(_cpu.get_reg16(Registers::Flags) & flag_carry) };
-				_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+				uint8_t old_al{ _cpu.get_reg(Registers_8::AL) };
+				bool old_cf{ static_cast<bool>(_cpu.get_reg(Registers::Flags) & flag_carry) };
+				_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 
-				if(((_cpu.get_reg8(Registers_8::AL) & 0xf) > 9) || _cpu.get_reg16(Registers::Flags) & flag_half_carry)
+				if(((_cpu.get_reg(Registers_8::AL) & 0xf) > 9) || _cpu.get_reg(Registers::Flags) & flag_half_carry)
 				{
 					Operand temp_al{ _cpu, false };
-					temp_al.get_addr8() = &_cpu.get_reg8(Registers_8::AL);
+					temp_al.get_addr8() = &_cpu.get_reg(Registers_8::AL);
 					temp_al += 6;
-					_cpu.get_reg16(Registers::Flags) |= old_cf;
-					_cpu.get_reg16(Registers::Flags) |= flag_half_carry;
+					_cpu.get_reg(Registers::Flags) |= old_cf;
+					_cpu.get_reg(Registers::Flags) |= flag_half_carry;
 				}
 				else
 				{
-					_cpu.get_reg16(Registers::Flags) &= ~flag_half_carry;
+					_cpu.get_reg(Registers::Flags) &= ~flag_half_carry;
 				}
 				if ((old_al > 0x99) || (old_cf == true)) 
 				{
-					_cpu.get_reg8(Registers_8::AL) += 0x60;
-					_cpu.get_reg16(Registers::Flags) |= flag_carry;
+					_cpu.get_reg(Registers_8::AL) += 0x60;
+					_cpu.get_reg(Registers::Flags) |= flag_carry;
 				}
 				else
 				{
-					_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+					_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 				}
 				break;
 			}
 			case CPU_Opcode::DAS:
 			{
-				uint8_t old_al{ _cpu.get_reg8(Registers_8::AL) };
-				bool old_cf{ static_cast<bool>(_cpu.get_reg16(Registers::Flags) & flag_carry) };
+				uint8_t old_al{ _cpu.get_reg(Registers_8::AL) };
+				bool old_cf{ static_cast<bool>(_cpu.get_reg(Registers::Flags) & flag_carry) };
 
-				_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+				_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 
-				if ((_cpu.get_reg8(Registers_8::AL) & 0xf) > 9 || _cpu.get_reg16(Registers::Flags) & flag_half_carry)
+				if ((_cpu.get_reg(Registers_8::AL) & 0xf) > 9 || _cpu.get_reg(Registers::Flags) & flag_half_carry)
 				{
-					_cpu.get_reg8(Registers_8::AL) -= 6;
+					_cpu.get_reg(Registers_8::AL) -= 6;
 
 					if (old_cf)
 					{
-						_cpu.get_reg16(Registers::Flags) |= flag_carry;
+						_cpu.get_reg(Registers::Flags) |= flag_carry;
 					}
 
 					else
 					{
-						_cpu.get_reg16(Registers::Flags) &= ~flag_carry;
+						_cpu.get_reg(Registers::Flags) &= ~flag_carry;
 					}
 
-					_cpu.get_reg16(Registers::Flags) |= flag_half_carry;
+					_cpu.get_reg(Registers::Flags) |= flag_half_carry;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::Flags) &= ~flag_half_carry;
+					_cpu.get_reg(Registers::Flags) &= ~flag_half_carry;
 				}
 
 				if ((old_al > 0x99) || old_cf)
 				{
-					_cpu.get_reg8(Registers_8::AL) -= 0x60;
-					_cpu.get_reg16(Registers::Flags) |= flag_carry;
+					_cpu.get_reg(Registers_8::AL) -= 0x60;
+					_cpu.get_reg(Registers::Flags) |= flag_carry;
 				}
 				break;
 			}
@@ -1142,56 +1142,56 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::IN_AL_IMM8:
 			{
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(_data1.data8[0], true);
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(_data1.data8[0], true);
 				break;
 			}
 			case CPU_Opcode::IN_AX_IMM8:
 			{
-				_cpu.get_reg16(Registers::AX) = _cpu._bus.read16(_data1.data8[0], true);
+				_cpu.get_reg(Registers::AX) = _cpu._bus.read16(_data1.data8[0], true);
 				break;
 			}
 			case CPU_Opcode::IN_AL_DX:
 			{
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(_cpu.get_reg16(Registers::DX), true);
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(_cpu.get_reg(Registers::DX), true);
 				break;
 			}
 			case CPU_Opcode::IN_AX_DX:
 			{
-				_cpu.get_reg16(Registers::AX) = _cpu._bus.read16(_cpu.get_reg16(Registers::DX), true);
+				_cpu.get_reg(Registers::AX) = _cpu._bus.read16(_cpu.get_reg(Registers::DX), true);
 				break;
 			}
 			case CPU_Opcode::INSB:
 			{
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(_cpu.get_reg16(Registers::DX), true);
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(_cpu.get_reg(Registers::DX), true);
 
-				_cpu._bus.write8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), _cpu.get_reg8(Registers_8::AL), false);
+				_cpu._bus.write8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), _cpu.get_reg(Registers_8::AL), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::DI)--;
+					_cpu.get_reg(Registers::DI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DI)++;
+					_cpu.get_reg(Registers::DI)++;
 				}
 
 				break;
 			}
 			case CPU_Opcode::INSW:
 			{
-				_cpu.get_reg16(Registers::AX) = _cpu._bus.read16(_cpu.get_reg16(Registers::DX), 1);
+				_cpu.get_reg(Registers::AX) = _cpu._bus.read16(_cpu.get_reg(Registers::DX), 1);
 
-				_cpu._bus.write16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), _cpu.get_reg16(Registers::AX), false);
+				_cpu._bus.write16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), _cpu.get_reg(Registers::AX), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::DI) -= 2;
+					_cpu.get_reg(Registers::DI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DI) += 2;
+					_cpu.get_reg(Registers::DI) += 2;
 				}
 
 				break;
@@ -1218,14 +1218,14 @@ void CPU::Instruction::exec()
 				uint16_t interrupt_offset{ _cpu._bus.read16(to_linear(0, interrupt * 4), 0) };
 				uint16_t interrupt_segment{ _cpu._bus.read16(to_linear(0, interrupt * 4) + 2, 0) };
 
-				_cpu.get_reg16(Registers::Flags) &= ~flag_interrupt;
+				_cpu.get_reg(Registers::Flags) &= ~flag_interrupt;
 
-				_cpu.push(_cpu.get_reg16(Registers::Flags));
+				_cpu.push(_cpu.get_reg(Registers::Flags));
 				_cpu.push(_cpu.get_sreg(Segment_Registers::CS));
-				_cpu.push(_cpu.get_reg16(Registers::IP) + _length);
+				_cpu.push(_cpu.get_reg(Registers::IP) + _length);
 
 				_cpu.get_sreg(Segment_Registers::CS) = interrupt_segment;
-				_cpu.get_reg16(Registers::IP) = interrupt_offset;
+				_cpu.get_reg(Registers::IP) = interrupt_offset;
 
 				increase_ip = false;
 				break;
@@ -1234,54 +1234,54 @@ void CPU::Instruction::exec()
 			{
 				// pop ip, cs, and flags after interrupt
 
-				_cpu.get_reg16(Registers::IP) = _cpu.pop();
+				_cpu.get_reg(Registers::IP) = _cpu.pop();
 				_cpu.get_sreg(Segment_Registers::CS) = _cpu.pop();
-				_cpu.get_reg16(Registers::Flags) = _cpu.pop();
+				_cpu.get_reg(Registers::Flags) = _cpu.pop();
 
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::JA_REL8: // 77 ii
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_carry) == 0 && (_cpu.get_reg16(Registers::Flags) & flag_zero) == 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_carry) == 0 && (_cpu.get_reg(Registers::Flags) & flag_zero) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JAE_REL8: // 73 ii // Same as JNB_REL8, JNC_REL8
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_carry) == 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_carry) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JB_REL8: // 72 ii // Same as JC_REL8, JNAE_REL8
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_carry)
+				if (_cpu.get_reg(Registers::Flags) & flag_carry)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JBE_REL8: // 76 ii // Same as JNA_REL8
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_carry || _cpu.get_reg16(Registers::Flags) & flag_zero)
+				if (_cpu.get_reg(Registers::Flags) & flag_carry || _cpu.get_reg(Registers::Flags) & flag_zero)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JCXZ_REL8: // E3 ii
 			{
-				if (_cpu.get_reg16(Registers::CX) == 0)
+				if (_cpu.get_reg(Registers::CX) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
@@ -1289,72 +1289,72 @@ void CPU::Instruction::exec()
 			case static_cast<CPU_Opcode>(0x64):
 			case CPU_Opcode::JE_REL8: // 74 ii // Same as JZ_REL8
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_zero)
+				if (_cpu.get_reg(Registers::Flags) & flag_zero)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JG_REL8: // 7f ii // Same as JNLE_REL8
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_zero) == 0 && (((_cpu.get_reg16(Registers::Flags) & flag_sign) == 0 && (_cpu.get_reg16(Registers::Flags) & flag_overflow) == 0) || ((_cpu.get_reg16(Registers::Flags) & flag_sign) && (_cpu.get_reg16(Registers::Flags) & flag_overflow))))
+				if ((_cpu.get_reg(Registers::Flags) & flag_zero) == 0 && (((_cpu.get_reg(Registers::Flags) & flag_sign) == 0 && (_cpu.get_reg(Registers::Flags) & flag_overflow) == 0) || ((_cpu.get_reg(Registers::Flags) & flag_sign) && (_cpu.get_reg(Registers::Flags) & flag_overflow))))
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JGE_REL8: // 7D ii // Same as JNL_REL8
 			{
-				if (((_cpu.get_reg16(Registers::Flags) & flag_sign) == 0 && (_cpu.get_reg16(Registers::Flags) & flag_overflow) == 0) || ((_cpu.get_reg16(Registers::Flags) & flag_sign) && (_cpu.get_reg16(Registers::Flags) & flag_overflow)))
+				if (((_cpu.get_reg(Registers::Flags) & flag_sign) == 0 && (_cpu.get_reg(Registers::Flags) & flag_overflow) == 0) || ((_cpu.get_reg(Registers::Flags) & flag_sign) && (_cpu.get_reg(Registers::Flags) & flag_overflow)))
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JL_REL8: // 7c ii // Same as JNGE_REL8
 			{
-				if (((_cpu.get_reg16(Registers::Flags) & flag_sign) == 0 && _cpu.get_reg16(Registers::Flags) & flag_overflow) || (_cpu.get_reg16(Registers::Flags) & flag_sign && (_cpu.get_reg16(Registers::Flags) & flag_overflow) == 0))
+				if (((_cpu.get_reg(Registers::Flags) & flag_sign) == 0 && _cpu.get_reg(Registers::Flags) & flag_overflow) || (_cpu.get_reg(Registers::Flags) & flag_sign && (_cpu.get_reg(Registers::Flags) & flag_overflow) == 0))
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JLE_REL8: // 7E ii // Same as JNG_REL8
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_zero || (((_cpu.get_reg16(Registers::Flags) & flag_sign) == 0 && _cpu.get_reg16(Registers::Flags) & flag_overflow) || (_cpu.get_reg16(Registers::Flags) & flag_sign && (_cpu.get_reg16(Registers::Flags) & flag_overflow) == 0)))
+				if (_cpu.get_reg(Registers::Flags) & flag_zero || (((_cpu.get_reg(Registers::Flags) & flag_sign) == 0 && _cpu.get_reg(Registers::Flags) & flag_overflow) || (_cpu.get_reg(Registers::Flags) & flag_sign && (_cpu.get_reg(Registers::Flags) & flag_overflow) == 0)))
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JNE_REL8: // 75 ii // Same as JNZ_REL8
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_zero) == 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_zero) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JNO_REL8: // 71 ii
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_overflow) == 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_overflow) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JNP_REL8: // 7b ii // Same as JPO_REL8
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_parity) == 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_parity) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
@@ -1362,62 +1362,62 @@ void CPU::Instruction::exec()
 			case static_cast<CPU_Opcode>(0x69):
 			case CPU_Opcode::JNS_REL8: // 79 ii
 			{
-				if ((_cpu.get_reg16(Registers::Flags) & flag_sign) == 0)
+				if ((_cpu.get_reg(Registers::Flags) & flag_sign) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JO_REL8: // 77 ii
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_overflow)
+				if (_cpu.get_reg(Registers::Flags) & flag_overflow)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JP_REL8: // 7A ii // Same as JPE_REL8
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_parity)
+				if (_cpu.get_reg(Registers::Flags) & flag_parity)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JS_REL8: // 78 ii
 			{
-				if (_cpu.get_reg16(Registers::Flags) & flag_sign)
+				if (_cpu.get_reg(Registers::Flags) & flag_sign)
 				{
-					_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+					_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 					increase_ip = false;
 				}
 				break;
 			}
 			case CPU_Opcode::JMP_REL8: // EB ii
 			{
-				_cpu.get_reg16(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
+				_cpu.get_reg(Registers::IP) += static_cast<int8_t>(_data1.data8[0]) + _length;
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::JMP_REL16: // E9 ii ii
 			{
-				_cpu.get_reg16(Registers::IP) += static_cast<int16_t>(_data1.data16) + _length;
+				_cpu.get_reg(Registers::IP) += static_cast<int16_t>(_data1.data16) + _length;
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::JMP_PTR16_16: // EA ii ii ii ii
 			{
-				_cpu.get_reg16(Registers::IP) = _data1.data16;
+				_cpu.get_reg(Registers::IP) = _data1.data16;
 				_cpu.get_sreg(Segment_Registers::CS) = _data2.data16;
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::LAHF:
 			{
-				_cpu.get_reg8(Registers_8::AH) = _cpu.get_reg16(Registers::Flags) & 0x00ff;
+				_cpu.get_reg(Registers_8::AH) = _cpu.get_reg(Registers::Flags) & 0x00ff;
 				break;
 			}
 			case CPU_Opcode::LDS:
@@ -1442,43 +1442,43 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::LODSB:
 			{
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)), false);
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg(Registers::SI)), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI)--;
+					_cpu.get_reg(Registers::SI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI)++;
+					_cpu.get_reg(Registers::SI)++;
 				}
 
 				break;
 			}
 			case CPU_Opcode::LODSW:
 			{
-				_cpu.get_reg16(Registers::AX) = _cpu._bus.read16(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)), false);
+				_cpu.get_reg(Registers::AX) = _cpu._bus.read16(to_linear(_data_seg, _cpu.get_reg(Registers::SI)), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI) -= 2;
+					_cpu.get_reg(Registers::SI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI) += 2;
+					_cpu.get_reg(Registers::SI) += 2;
 				}
 
 				break;
 			}
 			case CPU_Opcode::LOOP_REL8:
 			{
-				_cpu.get_reg16(Registers::CX)--;
+				_cpu.get_reg(Registers::CX)--;
 
-				if (_cpu.get_reg16(Registers::CX) != 0)
+				if (_cpu.get_reg(Registers::CX) != 0)
 				{
-					_cpu.get_reg16(Registers::IP) += (int8_t)_data1.data8[0] + _length;
+					_cpu.get_reg(Registers::IP) += (int8_t)_data1.data8[0] + _length;
 					increase_ip = false;
 				}
 
@@ -1486,11 +1486,11 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::LOOPE_REL8:
 			{
-				_cpu.get_reg16(Registers::CX)--;
+				_cpu.get_reg(Registers::CX)--;
 
-				if (_cpu.get_reg16(Registers::CX) != 0 && _cpu.get_reg16(Registers::Flags) & flag_zero)
+				if (_cpu.get_reg(Registers::CX) != 0 && _cpu.get_reg(Registers::Flags) & flag_zero)
 				{
-					_cpu.get_reg16(Registers::IP) += (int8_t)_data1.data8[0] + _length;
+					_cpu.get_reg(Registers::IP) += (int8_t)_data1.data8[0] + _length;
 					increase_ip = false;
 				}
 
@@ -1498,11 +1498,11 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::LOOPNE_REL8:
 			{
-				_cpu.get_reg16(Registers::CX)--;
+				_cpu.get_reg(Registers::CX)--;
 
-				if (_cpu.get_reg16(Registers::CX) != 0 && (_cpu.get_reg16(Registers::Flags) & flag_zero) == 0)
+				if (_cpu.get_reg(Registers::CX) != 0 && (_cpu.get_reg(Registers::Flags) & flag_zero) == 0)
 				{
-					_cpu.get_reg16(Registers::IP) += (int8_t)_data1.data8[0] + _length;
+					_cpu.get_reg(Registers::IP) += (int8_t)_data1.data8[0] + _length;
 					increase_ip = false;
 				}
 
@@ -1555,56 +1555,56 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::MOV_AL_MOFFS8: // A0 dd dd
 			{
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _data1.data16), false);
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _data1.data16), false);
 				break;
 			}
 			case CPU_Opcode::MOV_AX_MOFFS16: // A1 dd dd
 			{
-				_cpu.get_reg16(Registers::AX) = _cpu._bus.read16(to_linear(_data_seg, _data1.data16), false);
+				_cpu.get_reg(Registers::AX) = _cpu._bus.read16(to_linear(_data_seg, _data1.data16), false);
 				break;
 			}
 			case CPU_Opcode::MOV_MOFFS8_AL: // A2 dd dd	
 			{
-				_cpu._bus.write8(to_linear(_data_seg, _data1.data16), _cpu.get_reg8(Registers_8::AL), false);
+				_cpu._bus.write8(to_linear(_data_seg, _data1.data16), _cpu.get_reg(Registers_8::AL), false);
 				break;
 			}
 			case CPU_Opcode::MOV_MOFFS16_AX: // A2 dd dd
 			{
-				_cpu._bus.write16(to_linear(_data_seg, _data1.data16), _cpu.get_reg16(Registers::AX), false);
+				_cpu._bus.write16(to_linear(_data_seg, _data1.data16), _cpu.get_reg(Registers::AX), false);
 				break;
 			}
 			case CPU_Opcode::MOVSB:
 			{
-				_cpu._bus.write8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)), false), false);
+				_cpu._bus.write8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg(Registers::SI)), false), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI)--;
-					_cpu.get_reg16(Registers::DI)--;
+					_cpu.get_reg(Registers::SI)--;
+					_cpu.get_reg(Registers::DI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI)++;
-					_cpu.get_reg16(Registers::DI)++;
+					_cpu.get_reg(Registers::SI)++;
+					_cpu.get_reg(Registers::DI)++;
 				}
 
 				break;
 			}
 			case CPU_Opcode::MOVSW:
 			{
-				_cpu._bus.write16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), _cpu._bus.read16(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)), false), false);
+				_cpu._bus.write16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), _cpu._bus.read16(to_linear(_data_seg, _cpu.get_reg(Registers::SI)), false), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI) -= 2;
-					_cpu.get_reg16(Registers::DI) -= 2;
+					_cpu.get_reg(Registers::SI) -= 2;
+					_cpu.get_reg(Registers::DI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI) += 2;
-					_cpu.get_reg16(Registers::DI) += 2;
+					_cpu.get_reg(Registers::SI) += 2;
+					_cpu.get_reg(Registers::DI) += 2;
 				}
 
 				break;
@@ -1643,53 +1643,53 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::OUT_DX_AL:
 			{
-				_cpu._bus.write8(_cpu.get_reg16(Registers::DX), _reg->get_val8(), true);
+				_cpu._bus.write8(_cpu.get_reg(Registers::DX), _reg->get_val8(), true);
 				break;
 			}
 			case CPU_Opcode::OUT_DX_AX:
 			{
-				_cpu._bus.write16(_cpu.get_reg16(Registers::DX), _reg->get_val16(), true);
+				_cpu._bus.write16(_cpu.get_reg(Registers::DX), _reg->get_val16(), true);
 				break;
 			}
 			case CPU_Opcode::OUTSB:
 			{
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)), true);
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg(Registers::SI)), true);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI)--;
+					_cpu.get_reg(Registers::SI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI)++;
+					_cpu.get_reg(Registers::SI)++;
 				}
 
-				_cpu._bus.write8(_cpu.get_reg16(Registers::DX), _cpu.get_reg8(Registers_8::AL), true);
+				_cpu._bus.write8(_cpu.get_reg(Registers::DX), _cpu.get_reg(Registers_8::AL), true);
 				break;
 			}
 			case CPU_Opcode::OUTSW:
 			{
-				_cpu.get_reg16(Registers::AX) = _cpu._bus.read16(to_linear(_data_seg, _cpu.get_reg16(Registers::SI)), true);
+				_cpu.get_reg(Registers::AX) = _cpu._bus.read16(to_linear(_data_seg, _cpu.get_reg(Registers::SI)), true);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::SI) -= 2;
+					_cpu.get_reg(Registers::SI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::SI) += 2;
+					_cpu.get_reg(Registers::SI) += 2;
 				}
 
-				_cpu._bus.write16(_cpu.get_reg16(Registers::DX), _cpu.get_reg16(Registers::AX), true);
+				_cpu._bus.write16(_cpu.get_reg(Registers::DX), _cpu.get_reg(Registers::AX), true);
 				break;
 			}
 			case CPU_Opcode::PUSHA:
 			{
 				for (int i{}; i < 8; i++)
 				{
-					_cpu.push(_cpu.get_reg16(static_cast<Registers>(i)));
+					_cpu.push(_cpu.get_reg(static_cast<Registers>(i)));
 				}
 
 				break;
@@ -1712,7 +1712,7 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::PUSHF:
 			{
-				_cpu.push(_cpu.get_reg16(Registers::Flags));
+				_cpu.push(_cpu.get_reg(Registers::Flags));
 				break;
 			}
 			case CPU_Opcode::PUSH_IMM8:
@@ -1736,7 +1736,7 @@ void CPU::Instruction::exec()
 
 					else
 					{
-						_cpu.get_reg16(static_cast<Registers>(i)) = _cpu.pop();
+						_cpu.get_reg(static_cast<Registers>(i)) = _cpu.pop();
 					}
 				}
 				break;
@@ -1764,52 +1764,52 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::POPF:
 			{
-				_cpu.get_reg16(Registers::Flags) = _cpu.pop();
+				_cpu.get_reg(Registers::Flags) = _cpu.pop();
 				break;
 			}
 			case CPU_Opcode::RET_FAR:
 			{
-				_cpu.get_reg16(Registers::IP) = _cpu.pop();
+				_cpu.get_reg(Registers::IP) = _cpu.pop();
 				_cpu.get_sreg(Segment_Registers::CS) = _cpu.pop();
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::RET_FAR_IMM16:
 			{
-				_cpu.get_reg16(Registers::IP) = _cpu.pop();
+				_cpu.get_reg(Registers::IP) = _cpu.pop();
 				_cpu.get_sreg(Segment_Registers::CS) = _cpu.pop();
-				_cpu.get_reg16(Registers::SP) += _data1.data16;
+				_cpu.get_reg(Registers::SP) += _data1.data16;
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::RET_NEAR:
 			{
-				_cpu.get_reg16(Registers::IP) = _cpu.pop();
+				_cpu.get_reg(Registers::IP) = _cpu.pop();
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::RET_NEAR_IMM16:
 			{
-				_cpu.get_reg16(Registers::IP) = _cpu.pop();
-				_cpu.get_reg16(Registers::SP) += _data1.data16;
+				_cpu.get_reg(Registers::IP) = _cpu.pop();
+				_cpu.get_reg(Registers::SP) += _data1.data16;
 				increase_ip = false;
 				break;
 			}
 			case CPU_Opcode::SAHF:
 			{
-				_cpu.get_reg16(Registers::Flags) &= ~0x00ff;
-				_cpu.get_reg16(Registers::Flags) |= _cpu.get_reg8(Registers_8::AH);
+				_cpu.get_reg(Registers::Flags) &= ~0x00ff;
+				_cpu.get_reg(Registers::Flags) |= _cpu.get_reg(Registers_8::AH);
 				break;
 			}
 			case CPU_Opcode::SBB_AL_IMM8:
 			{
-				uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+				uint8_t temp{ static_cast<uint8_t>(_data1.data8[0] + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 				*_reg -= temp;
 				break;
 			}
 			case CPU_Opcode::SBB_AX_IMM16:
 			{
-				uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+				uint16_t temp{ static_cast<uint16_t>(_data1.data16 + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 				*_reg -= temp;
 				break;
 			}
@@ -1822,13 +1822,13 @@ void CPU::Instruction::exec()
 				{
 					if (_width)
 					{
-						uint16_t temp{ static_cast<uint16_t>(_regmem->get_val16() + (_cpu.get_reg16(Registers::Flags) & flag_carry))};
+						uint16_t temp{ static_cast<uint16_t>(_regmem->get_val16() + (_cpu.get_reg(Registers::Flags) & flag_carry))};
 						*_reg -= temp;
 					}
 
 					else
 					{
-						uint8_t temp{ static_cast<uint8_t>(_regmem->get_val8() + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+						uint8_t temp{ static_cast<uint8_t>(_regmem->get_val8() + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 						*_reg -= temp;
 					}
 				}
@@ -1837,13 +1837,13 @@ void CPU::Instruction::exec()
 				{
 					if (_width)
 					{
-						uint16_t temp{ static_cast<uint16_t>(_reg->get_val16() + (_cpu.get_reg16(Registers::Flags) & flag_carry)) };
+						uint16_t temp{ static_cast<uint16_t>(_reg->get_val16() + (_cpu.get_reg(Registers::Flags) & flag_carry)) };
 						*_regmem -= temp;
 					}
 
 					else
 					{
-						uint8_t temp{ static_cast<uint8_t>(_reg->get_val8() + (static_cast<uint8_t>(_cpu.get_reg16(Registers::Flags) & flag_carry))) };
+						uint8_t temp{ static_cast<uint8_t>(_reg->get_val8() + (static_cast<uint8_t>(_cpu.get_reg(Registers::Flags) & flag_carry))) };
 						*_regmem -= temp;
 					}
 				}
@@ -1851,20 +1851,20 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::SCASB:
 			{
-				uint8_t temp_var{ _cpu.get_reg8(Registers_8::AL) };
+				uint8_t temp_var{ _cpu.get_reg(Registers_8::AL) };
 				Instruction::Operand temp{ _cpu, _width };
-				temp.get_addr8() = &_cpu.get_reg8(Registers_8::AL);
-				temp -= _cpu._bus.read8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), false);
+				temp.get_addr8() = &_cpu.get_reg(Registers_8::AL);
+				temp -= _cpu._bus.read8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), false);
 				temp = temp_var;
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::DI)--;
+					_cpu.get_reg(Registers::DI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DI)++;
+					_cpu.get_reg(Registers::DI)++;
 				}
 
 				_cpu._zero_flag_check = true;
@@ -1873,20 +1873,20 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::SCASW:
 			{
-				uint16_t temp_var{ _cpu.get_reg16(Registers::AX) };
+				uint16_t temp_var{ _cpu.get_reg(Registers::AX) };
 				Instruction::Operand temp{ _cpu, _width };
-				temp.get_addr16() = &_cpu.get_reg16(Registers::AX);
-				temp -= _cpu._bus.read16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), false);
+				temp.get_addr16() = &_cpu.get_reg(Registers::AX);
+				temp -= _cpu._bus.read16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), false);
 				temp = temp_var;
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::DI) -= 2;
+					_cpu.get_reg(Registers::DI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DI) += 2;
+					_cpu.get_reg(Registers::DI) += 2;
 				}
 
 				_cpu._zero_flag_check = true;
@@ -1895,12 +1895,12 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::STC:
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_carry;
+				_cpu.get_reg(Registers::Flags) |= flag_carry;
 				break;
 			}
 			case CPU_Opcode::STD:
 			{
-				_cpu.get_reg16(Registers::Flags) |= flag_direction;
+				_cpu.get_reg(Registers::Flags) |= flag_direction;
 				break;
 			}
 			case CPU_Opcode::STI:
@@ -1910,32 +1910,32 @@ void CPU::Instruction::exec()
 			}
 			case CPU_Opcode::STOSB:
 			{
-				_cpu._bus.write8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), _cpu.get_reg8(Registers_8::AL), false);
+				_cpu._bus.write8(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), _cpu.get_reg(Registers_8::AL), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::DI)--;
+					_cpu.get_reg(Registers::DI)--;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DI)++;
+					_cpu.get_reg(Registers::DI)++;
 				}
 
 				break;
 			}
 			case CPU_Opcode::STOSW:
 			{
-				_cpu._bus.write16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg16(Registers::DI)), _cpu.get_reg16(Registers::AX), false);
+				_cpu._bus.write16(to_linear(_cpu.get_sreg(Segment_Registers::ES), _cpu.get_reg(Registers::DI)), _cpu.get_reg(Registers::AX), false);
 
-				if (_cpu.get_reg16(Registers::Flags) & flag_direction)
+				if (_cpu.get_reg(Registers::Flags) & flag_direction)
 				{
-					_cpu.get_reg16(Registers::DI) -= 2;
+					_cpu.get_reg(Registers::DI) -= 2;
 				}
 
 				else
 				{
-					_cpu.get_reg16(Registers::DI) += 2;
+					_cpu.get_reg(Registers::DI) += 2;
 				}
 
 				break;
@@ -2014,14 +2014,14 @@ void CPU::Instruction::exec()
 			case CPU_Opcode::XCHG_AX_DI:
 			{
 				uint16_t temp{ _reg->get_val16() };
-				*_reg = _cpu.get_reg16(Registers::AX);
-				_cpu.get_reg16(Registers::AX) = temp;
+				*_reg = _cpu.get_reg(Registers::AX);
+				_cpu.get_reg(Registers::AX) = temp;
 				break;
 			}
 			case CPU_Opcode::XLAT:
 			{
-				uint16_t temp{ static_cast<uint16_t>(_cpu.get_reg8(Registers_8::AL)) };
-				_cpu.get_reg8(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg16(Registers::BX) + temp), false);
+				uint16_t temp{ static_cast<uint16_t>(_cpu.get_reg(Registers_8::AL)) };
+				_cpu.get_reg(Registers_8::AL) = _cpu._bus.read8(to_linear(_data_seg, _cpu.get_reg(Registers::BX) + temp), false);
 				break;
 			}
 			case CPU_Opcode::XOR_AL_IMM8:
@@ -2054,12 +2054,12 @@ void CPU::Instruction::exec()
 
 		if (increase_ip)
 		{
-			_cpu.get_reg16(Registers::IP) += _length;
+			_cpu.get_reg(Registers::IP) += _length;
 		}
 
 		if (dec_cx)
 		{
-			_cpu.get_reg16(Registers::CX)--;
+			_cpu.get_reg(Registers::CX)--;
 		}
 	}
 

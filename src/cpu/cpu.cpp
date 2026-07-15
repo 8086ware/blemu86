@@ -13,29 +13,29 @@ void CPU::reset()
 {
 	std::println("[CPU] Reset to 0xffff:0");
 
-	get_reg16(Registers::IP) = 0x0;
+	get_reg(Registers::IP) = 0x0;
 	get_sreg(Segment_Registers::CS) = 0xffff;
 }
 
 void CPU::push(uint16_t value)
 {
-	get_reg16(Registers::SP) -= 2;
-	_bus.write16(to_linear(get_sreg(Segment_Registers::SS), get_reg16(Registers::SP)), value, false);
+	get_reg(Registers::SP) -= 2;
+	_bus.write16(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), value, false);
 }
 
 uint16_t CPU::pop()
 {
-	uint16_t value{ _bus.read16(to_linear(get_sreg(Segment_Registers::SS), get_reg16(Registers::SP)), false) };
-	get_reg16(Registers::SP) += 2;
+	uint16_t value{ _bus.read16(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), false) };
+	get_reg(Registers::SP) += 2;
 	return value;
 }
 
-uint16_t& CPU::get_reg16(Registers reg)
+uint16_t& CPU::get_reg(Registers reg)
 {
 	return _regs[std::to_underlying(reg)].word;
 }
 
-uint8_t& CPU::get_reg8(Registers_8 reg)
+uint8_t& CPU::get_reg(Registers_8 reg)
 {
 	if (std::to_underlying(reg) <= 3)
 	{
@@ -59,7 +59,7 @@ void CPU::check_irq()
 
 	uint16_t vector_offset{};
 
-	if (get_reg16(Registers::Flags) & flag_interrupt)
+	if (get_reg(Registers::Flags) & flag_interrupt)
 	{
 		if (_pic.get_irr() != 0)
 		{
@@ -83,14 +83,14 @@ void CPU::check_irq()
 
 			if (interrupt_go)
 			{
-				push(get_reg16(Registers::Flags));
+				push(get_reg(Registers::Flags));
 				push(get_sreg(Segment_Registers::CS));
-				push(get_reg16(Registers::IP));
+				push(get_reg(Registers::IP));
 
 				get_sreg(Segment_Registers::CS) = _bus.read16(to_linear(0, vector_offset + 2), false);
-				get_reg16(Registers::IP) = _bus.read16(to_linear(0, vector_offset), false);
+				get_reg(Registers::IP) = _bus.read16(to_linear(0, vector_offset), false);
 
-				get_reg16(Registers::Flags) &= ~flag_interrupt;
+				get_reg(Registers::Flags) &= ~flag_interrupt;
 				_halted = 0;
 			}
 		}

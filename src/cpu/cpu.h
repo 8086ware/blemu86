@@ -749,8 +749,9 @@ public:
 	void modify_flag_sign(int16_t val, bool word);
 	void modify_flag_overflow(int16_t op1, int16_t op2, int16_t result, bool word);
 
-	uint16_t& get_reg16(Registers reg);
-	uint8_t& get_reg8(Registers_8 reg);
+	uint16_t& get_reg(Registers reg);
+	uint8_t& get_reg(Registers_8 reg);
+
 	uint16_t& get_sreg(Segment_Registers reg);
 
 	void check_irq();

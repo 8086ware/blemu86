@@ -6,12 +6,12 @@ void CPU::modify_flag_carry(int old_val, int val, bool added, bool word)
 	{
 		if ((old_val + val > USHRT_MAX && added) || (old_val - val < 0 && !added))
 		{
-			get_reg16(Registers::Flags) |= flag_carry;
+			get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			get_reg16(Registers::Flags) &= ~flag_carry;
+			get_reg(Registers::Flags) &= ~flag_carry;
 		}
 	}
 
@@ -19,12 +19,12 @@ void CPU::modify_flag_carry(int old_val, int val, bool added, bool word)
 	{
 		if ((old_val + val > UCHAR_MAX && added) || (old_val - val < 0 && !added))
 		{
-			get_reg16(Registers::Flags) |= flag_carry;
+			get_reg(Registers::Flags) |= flag_carry;
 		}
 
 		else
 		{
-			get_reg16(Registers::Flags) &= ~flag_carry;
+			get_reg(Registers::Flags) &= ~flag_carry;
 		}
 	}
 }
@@ -46,12 +46,12 @@ void CPU::modify_flag_parity(uint8_t val)
 
 	if (bit_amount % 2 == 0)
 	{
-		get_reg16(Registers::Flags) |= flag_parity;
+		get_reg(Registers::Flags) |= flag_parity;
 	}
 
 	else
 	{
-		get_reg16(Registers::Flags) &= ~flag_parity;
+		get_reg(Registers::Flags) &= ~flag_parity;
 	}
 }
 
@@ -61,12 +61,12 @@ void CPU::modify_flag_half_carry(uint8_t old_val, uint8_t new_val)
 {
 	if (old_val < 0x10 && new_val >= 0x10)
 	{
-		get_reg16(Registers::Flags) |= flag_half_carry;
+		get_reg(Registers::Flags) |= flag_half_carry;
 	}
 
 	else
 	{
-		get_reg16(Registers::Flags) &= ~flag_half_carry;
+		get_reg(Registers::Flags) &= ~flag_half_carry;
 	}
 }
 
@@ -76,12 +76,12 @@ void CPU::modify_flag_zero(uint16_t val)
 {
 	if (val == 0)
 	{
-		get_reg16(Registers::Flags) |= flag_zero;
+		get_reg(Registers::Flags) |= flag_zero;
 	}
 
 	else
 	{
-		get_reg16(Registers::Flags) &= ~flag_zero;
+		get_reg(Registers::Flags) &= ~flag_zero;
 	}
 }
 
@@ -93,12 +93,12 @@ void CPU::modify_flag_sign(int16_t val, bool word)
 	{
 		if ((val & 0x8000))
 		{
-			get_reg16(Registers::Flags) |= flag_sign;
+			get_reg(Registers::Flags) |= flag_sign;
 		}
 
 		else
 		{
-			get_reg16(Registers::Flags) &= ~flag_sign;
+			get_reg(Registers::Flags) &= ~flag_sign;
 		}
 	}
 
@@ -106,12 +106,12 @@ void CPU::modify_flag_sign(int16_t val, bool word)
 	{
 		if ((val8 & 0x80))
 		{
-			get_reg16(Registers::Flags) |= flag_sign;
+			get_reg(Registers::Flags) |= flag_sign;
 		}
 
 		else
 		{
-			get_reg16(Registers::Flags) &= ~flag_sign;
+			get_reg(Registers::Flags) &= ~flag_sign;
 		}
 	}
 }
@@ -147,16 +147,16 @@ void CPU::modify_flag_overflow(int16_t op1, int16_t op2, int16_t result, bool wo
 
 	if (op1_neg && !op2_neg && !result_neg)
 	{
-		get_reg16(Registers::Flags) |= flag_overflow;
+		get_reg(Registers::Flags) |= flag_overflow;
 	}
 
 	else if (!op1_neg && op2_neg && result_neg)
 	{
-		get_reg16(Registers::Flags) |= flag_overflow;
+		get_reg(Registers::Flags) |= flag_overflow;
 	}
 
 	else
 	{
-		get_reg16(Registers::Flags) &= ~flag_overflow;
+		get_reg(Registers::Flags) &= ~flag_overflow;
 	}
 }

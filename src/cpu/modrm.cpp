@@ -42,12 +42,12 @@ void CPU::Instruction::calc_modrm_byte(int modrm_address, bool sreg)
 		{
 		case 0:
 		{
-			temp_regmem += _cpu.get_reg16(Registers::BX) + _cpu.get_reg16(Registers::SI);
+			temp_regmem += _cpu.get_reg(Registers::BX) + _cpu.get_reg(Registers::SI);
 			break;
 		}
 		case 1:
 		{
-			temp_regmem += _cpu.get_reg16(Registers::BX) + _cpu.get_reg16(Registers::DI);
+			temp_regmem += _cpu.get_reg(Registers::BX) + _cpu.get_reg(Registers::DI);
 			break;
 		}
 		case 2:
@@ -57,7 +57,7 @@ void CPU::Instruction::calc_modrm_byte(int modrm_address, bool sreg)
 				_data_seg = _cpu.get_sreg(Segment_Registers::SS);
 			}
 
-			temp_regmem += _cpu.get_reg16(Registers::BP) + _cpu.get_reg16(Registers::SI);
+			temp_regmem += _cpu.get_reg(Registers::BP) + _cpu.get_reg(Registers::SI);
 			break;
 		}
 		case 3:
@@ -67,17 +67,17 @@ void CPU::Instruction::calc_modrm_byte(int modrm_address, bool sreg)
 				_data_seg = _cpu.get_sreg(Segment_Registers::SS);
 			}
 
-			temp_regmem += _cpu.get_reg16(Registers::BP) + _cpu.get_reg16(Registers::DI);
+			temp_regmem += _cpu.get_reg(Registers::BP) + _cpu.get_reg(Registers::DI);
 			break;
 		}
 		case 4:
 		{
-			temp_regmem += _cpu.get_reg16(Registers::SI);
+			temp_regmem += _cpu.get_reg(Registers::SI);
 			break;
 		}
 		case 5:
 		{
-			temp_regmem += _cpu.get_reg16(Registers::DI);
+			temp_regmem += _cpu.get_reg(Registers::DI);
 			break;
 		}
 		case 6:
@@ -94,14 +94,14 @@ void CPU::Instruction::calc_modrm_byte(int modrm_address, bool sreg)
 					_data_seg = _cpu.get_sreg(Segment_Registers::SS);
 				}
 
-				temp_regmem += _cpu.get_reg16(Registers::BP);
+				temp_regmem += _cpu.get_reg(Registers::BP);
 			}
 
 			break;
 		}
 		case 7:
 		{
-			temp_regmem += _cpu.get_reg16(Registers::BX);
+			temp_regmem += _cpu.get_reg(Registers::BX);
 			break;
 		}
 		}
@@ -135,12 +135,12 @@ void CPU::Instruction::calc_modrm_byte(int modrm_address, bool sreg)
 	{
 		if (_width)
 		{
-			_regmem->get_addr16() = &_cpu.get_reg16(static_cast<Registers>(rm_val));
+			_regmem->get_addr16() = &_cpu.get_reg(static_cast<Registers>(rm_val));
 		}
 
 		else
 		{
-			_regmem->get_addr8() = &_cpu.get_reg8(static_cast<Registers_8>(rm_val));
+			_regmem->get_addr8() = &_cpu.get_reg(static_cast<Registers_8>(rm_val));
 		}
 	}
 
@@ -153,11 +153,11 @@ void CPU::Instruction::calc_modrm_byte(int modrm_address, bool sreg)
 
 	else if (_width)
 	{
-		_reg->get_addr16() = &_cpu.get_reg16(static_cast<Registers>(reg_val));
+		_reg->get_addr16() = &_cpu.get_reg(static_cast<Registers>(reg_val));
 	}
 
 	else
 	{
-		_reg->get_addr8() = &_cpu.get_reg8(static_cast<Registers_8>(reg_val));
+		_reg->get_addr8() = &_cpu.get_reg(static_cast<Registers_8>(reg_val));
 	}
 }

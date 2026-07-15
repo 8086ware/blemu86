@@ -4,7 +4,7 @@
 CPU::Instruction::Instruction(CPU& cpu) : _cpu{ cpu }
 {
 	_segment = _cpu.get_sreg(Segment_Registers::CS);
-	_offset = _cpu.get_reg16(Registers::IP);
+	_offset = _cpu.get_reg(Registers::IP);
 	_data_seg = _cpu.get_sreg(Segment_Registers::DS);
 
 	bool prefix_instruction_done{};
@@ -62,12 +62,12 @@ CPU::Instruction::Instruction(CPU& cpu) : _cpu{ cpu }
 
 	if (_width) // width
 	{
-		_reg->get_addr16() = &_cpu.get_reg16(Registers::AX);
+		_reg->get_addr16() = &_cpu.get_reg(Registers::AX);
 	}
 
 	else
 	{
-		_reg->get_addr8() = &_cpu.get_reg8(Registers_8::AL);
+		_reg->get_addr8() = &_cpu.get_reg(Registers_8::AL);
 	}
 
 	if (opcode_desc[std::to_underlying(opcode)] & 0x4) // modrm byte?
@@ -75,7 +75,7 @@ CPU::Instruction::Instruction(CPU& cpu) : _cpu{ cpu }
 		calc_modrm_byte(to_linear(_segment, _offset + _length), opcode_desc[std::to_underlying(opcode)] & 0x80);
 	}
 
-	if (opcode_desc[std::to_underlying(opcode)] & 0x8 || (opcode == CPU_Opcode::GROUP_OPCODE_F7 && (_reg->get_addr16() == &_cpu.get_reg16(Registers::AX))) || (opcode == CPU_Opcode::GROUP_OPCODE_F6 && _reg->get_addr8() == &_cpu.get_reg8(Registers_8::AL))) // data 1.
+	if (opcode_desc[std::to_underlying(opcode)] & 0x8 || (opcode == CPU_Opcode::GROUP_OPCODE_F7 && (_reg->get_addr16() == &_cpu.get_reg(Registers::AX))) || (opcode == CPU_Opcode::GROUP_OPCODE_F6 && _reg->get_addr8() == &_cpu.get_reg(Registers_8::AL))) // data 1.
 	{
 		if (_data1_width == 0)
 		{
@@ -114,12 +114,12 @@ CPU::Instruction::Instruction(CPU& cpu) : _cpu{ cpu }
 	{
 		if (_width)
 		{
-			_reg->get_addr16() = &_cpu.get_reg16(static_cast<Registers>(std::to_underlying(opcode) & 0x7));
+			_reg->get_addr16() = &_cpu.get_reg(static_cast<Registers>(std::to_underlying(opcode) & 0x7));
 		}
 
 		else
 		{
-			_reg->get_addr8() = &_cpu.get_reg8(static_cast<Registers_8>(std::to_underlying(opcode) & 0x7));
+			_reg->get_addr8() = &_cpu.get_reg(static_cast<Registers_8>(std::to_underlying(opcode) & 0x7));
 		}
 	}
 

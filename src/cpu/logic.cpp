@@ -1397,10 +1397,6 @@ void CPU::logic() {
 		{
 			uint8_t interrupt{ fetch<Op_Imm<uint8_t>>(data_seg).get_val() };
 
-			if (interrupt == 0x13)
-			{
-				int a{};
-			}
 			// Look up in interrupt vector table. Example: int 0x10, 0x10 * 4 = 0x40, get offset at 0x40 and segment at 0x42, jump there
 			if (exec)
 			{
@@ -2310,11 +2306,6 @@ void CPU::logic() {
 			std::println("[CPU] Unknown Opcode {:x}, {:x}:{:x}", static_cast<uint8_t>(opcode), get_sreg(Segment_Registers::CS), opcode_ip);
 			break;
 		}
-		}
-
-		if (get_reg(Registers::IP) == 0xecc2)
-		{
-			int a{};
 		}
 
 		if(reset_ip)

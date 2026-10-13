@@ -4,7 +4,7 @@
 
 class PPI : public IO_Device
 {
-	uint8_t _ppi_dip_switch{ 0x2C };
+	uint8_t _ppi_dip_switch{ 0xEC };
 
 	// PPI modes:
 	// 0 - Simple input or output mode

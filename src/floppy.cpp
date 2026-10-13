@@ -2,6 +2,7 @@
 #include <print>
 #include <filesystem>
 #include <string_view>
+#include <cmath>
 
 unsigned int FDD::to_lba(int c, int h, int s)
 {

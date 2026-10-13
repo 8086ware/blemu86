@@ -274,7 +274,7 @@ bool FDC::write(int address, uint8_t data, bool io)
 			if ((data & dor_reset_off) == 0) // reset
 			{
 				_msr &= ~msr_data_io;
-				_st[0] = (3 << 6) | (static_cast<uint8_t>(_selected_fdd->head()) << 2) | (data & dor_drive);
+				_st[0] = (3 << 6) | (data & dor_drive);
 				_pic.raise(PIC::IRQ::Floppy_Ctrl);
 				_msr |= msr_rqm;
 				_data_bytes = 0;
@@ -283,7 +283,7 @@ bool FDC::write(int address, uint8_t data, bool io)
 
 			if (data & dor_motor_a_on || data & dor_motor_b_on || data & dor_motor_c_on || data & dor_motor_d_on) // one of the motors turned on
 			{
-				_st[0] = (3 << 6) | (static_cast<uint8_t>(_selected_fdd->head()) << 2) | (data & dor_drive);
+				_st[0] = (3 << 6) | (data & dor_drive);
 				_msr &= ~msr_data_io;
 				_pic.raise(PIC::IRQ::Floppy_Ctrl);
 				_msr |= msr_rqm;

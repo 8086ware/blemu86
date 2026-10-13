@@ -2,181 +2,87 @@
 #include <cstdint>
 #include "chipset/pic.h"
 #include <variant>
-#include "chipset/bus.h"
 #include <chrono>
 #include <array>
+#include <utility>
+#include "chipset/bus.h"
+#include "cpu_concepts.h"
 
 // emulates 186 feature 16 bit cpu
 
+class CPU;
+class Operand
+{
+public:
+	// operator overloading for instructions
+	Operand() {}
+
+	auto&& operator++(this auto&& self, int val); // this would be inc...
+	auto&& operator--(this auto&& self, int val); // this would be dec...
+	auto&& operator+=(this auto&& self, auto value); // this would be add...
+	auto&& operator-=(this auto&& self, auto value); // this would be sub...
+	auto&& operator^=(this auto&& self, auto value); // this would be xor...
+	auto&& operator&=(this auto&& self, auto value); // this would be and...
+	auto&& operator|=(this auto&& self, auto value); // this would be or...
+	auto&& operator>>=(this auto&& self, auto value); // this would be shr...
+	auto&& sar(this auto&& self, auto value); // this would be sar...
+	auto&& operator<<=(this auto&& self, auto value); // this would be shl/sal...
+	auto&& rol(this auto&& self, auto value); // this would be rol...
+	auto&& ror(this auto&& self, auto value); // this would be ror/rcr...
+	auto&& rcl(this auto&& self, auto value); // this would be rcl...
+	auto&& rcr(this auto&& self, auto value); // this would be rcr...
+	auto&& mul(this auto&& self); // this would be mul...
+	auto&& div(this auto&& self); // this would be div
+	auto&& imul(this auto&& self); // this would be imul...
+	auto&& imul(this auto&& self, auto value1, auto value2); // this would be imul (3 operands)...
+	auto&& idiv(this auto&& self); // this would be idiv..
+	auto&& neg(this auto&& self); // this would be neg..
+};
+
+
+template<CPU_Width T> class Op_Mem;
+template<CPU_Width T> class Op_Imm;
+template<CPU_Width T> class Op_Regmem;
+template<CPU_Width T> class Op_Reg;
+
+template<typename T> concept Op_Normal_Type = std::same_as<T, Op_Imm<uint8_t>> || std::same_as<T, Op_Imm<uint16_t>> || std::same_as<T, Op_Mem<uint8_t>> ||  std::same_as<T, Op_Mem<uint16_t>>;
+template<typename T> concept Op_Type = Op_Normal_Type<T> || std::same_as<T, Op_Regmem<uint16_t>> || std::same_as<T, Op_Regmem<uint8_t>> || std::same_as<T, Op_Reg<uint16_t>> || std::same_as<T, Op_Reg<uint8_t>>;
+
 class CPU 
 {
-	friend class Instruction;
-	friend class Operand;
-
-	// (lowest to highest bit) destination/instruction width 0, reg to reg / mem 1 (opposite for 1), modrm 2, data 1 3, data 2 4, segment encoded 5, reg encoded in last three bits 6, reg = sreg 7, data 1 width 8, data 2 width 9,
-	static constexpr std::array<uint16_t, 256> opcode_desc
+	enum class CPU_Group_Opcode_8X : uint8_t
 	{
-		//octal 0xx
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x21,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x21,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x21,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x21,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x0,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x0,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x0,
-		0x4, 0x5, 0x6, 0x7, 0x8, 0x109, 0x21, 0x0,
-		// octal 1xx
-		0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-		0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-		0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-		0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-		0x109, 0x10D, 0x8, 0xC, 0x0, 0x1, 0x0, 0x1,
-		0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8,
-		0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8,
-		// octal 2xx
-		0xC, 0x10D, 0x0, 0xD, 0x4, 0x5, 0x4, 0x5,
-		0x4, 0x5, 0x6, 0x7, 0x85, 0x7, 0x87, 0x5,
-		0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
-		0x0, 0x1, 0x319, 0x0, 0x0, 0x0, 0x0, 0x0,
-		0x108, 0x109, 0x108, 0x109, 0x0, 0x1, 0x0, 0x1,
-		0x8, 0x109, 0x0, 0x1, 0x0, 0x1, 0x0, 0x1,
-		0x48, 0x48, 0x48, 0x48, 0x48, 0x48, 0x48, 0x48,
-		0x149, 0x149, 0x149, 0x149, 0x149, 0x149, 0x149, 0x149,
-		// octal 3xx
-		0xC, 0xD, 0x109, 0x0, 0x7, 0x7, 0xC, 0x10D,
-		0x0, 0x0, 0x109, 0x0, 0x0, 0x8, 0x0, 0x0,
-		0x4, 0x5, 0x4, 0x5, 0x8, 0x8, 0x0, 0x0,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-		0x8, 0x8, 0x8, 0x8, 0x8, 0x9, 0x8, 0x9,
-		0x109, 0x109, 0x319, 0x8, 0x0, 0x1, 0x0, 0x1,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x4, 0x105,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x4, 0x5,
-	};
-
-	enum class CPU_Group_Opcode_80 : uint8_t
-	{
-		ADD_RM8_IMM8 = 0x0,// Opcode group 80
-		OR_RM8_IMM8 = 0x1, // Opcode group 80
-		ADC_RM8_IMM8 = 0x2, // Opcode group 80
-		SBB_RM8_IMM8 = 0x3, // Opcode group 80
-		AND_RM8_IMM8 = 0x4, // Opcode group 80
-		SUB_RM8_IMM8 = 0x5, // Opcode group 80
-		XOR_RM8_IMM8 = 0x6, // Opcode group 80
-		CMP_RM8_IMM8 = 0x7, // Opcode group 80
-	};
-
-	enum class CPU_Group_Opcode_81 : uint8_t
-	{
-		ADD_RM16_IMM16 = 0x0,// Opcode group 81
-		OR_RM16_IMM16 = 0x1, // Opcode group 81
-		ADC_RM16_IMM16 = 0x2, // Opcode group 81
-		SBB_RM16_IMM16 = 0x3,// Opcode group 81
-		AND_RM16_IMM16 = 0x4, // Opcode group 81
-		SUB_RM16_IMM16 = 0x5, // Opcode group 81
-		XOR_RM16_IMM16 = 0x6, // Opcode group 81
-		CMP_RM16_IMM16 = 0x7, // Opcode group 81
-	};
-
-	enum class CPU_Group_Opcode_83 : uint8_t
-	{
-		ADD_RM16_IMM8 = 0x0, // Opcode group 83
-		OR_RM16_IMM8 = 0x1, // Opcode group 83
-		ADC_RM16_IMM8 = 0x2, // Opcode group 83
-		SBB_RM16_IMM8 = 0x3, // Opcode group 83
-		AND_RM16_IMM8 = 0x4, // Opcode group 83
-		SUB_RM16_IMM8 = 0x5, // Opcode group 83
-		XOR_RM16_IMM8 = 0x6, // Opcode group 83
-		CMP_RM16_IMM8 = 0x7, // Opcode group 83
+		ADD = 0x0,// Opcode group 80
+		OR = 0x1, // Opcode group 80
+		ADC = 0x2, // Opcode group 80
+		SBB = 0x3, // Opcode group 80
+		AND = 0x4, // Opcode group 80
+		SUB = 0x5, // Opcode group 80
+		XOR = 0x6, // Opcode group 80
+		CMP = 0x7, // Opcode group 80
 	};
 
 
-	enum class CPU_Group_Opcode_C0 : uint8_t
+	enum class CPU_Group_Opcode_CX_DX : uint8_t
 	{
-		ROL_RM8_IMM8 = 0x0,
-		ROR_RM8_IMM8 = 0x1,
-		RCL_RM8_IMM8 = 0x2,
-		RCR_RM8_IMM8 = 0x3,
-		SAL_RM8_IMM8 = 0x4,
-		SHR_RM8_IMM8 = 0x5,
-		SAR_RM8_IMM8 = 0x7,
+		ROL = 0x0,
+		ROR = 0x1,
+		RCL = 0x2,
+		RCR = 0x3,
+		SAL = 0x4,
+		SHR = 0x5,
+		SAR = 0x7,
 	};
 
-	enum class CPU_Group_Opcode_C1 : uint8_t
+	enum class CPU_Group_Opcode_F6_F7 : uint8_t
 	{
-		ROL_RM16_IMM8 = 0x0,
-		ROR_RM16_IMM8 = 0x1,
-		RCL_RM16_IMM8 = 0x2,
-		RCR_RM16_IMM8 = 0x3,
-		SAL_RM16_IMM8 = 0x4,
-		SHR_RM16_IMM8 = 0x5,
-		SAR_RM16_IMM8 = 0x7,
-	};
-
-	enum class CPU_Group_Opcode_D0 : uint8_t
-	{
-		ROL_RM8_1 = 0x0,
-		ROR_RM8_1 = 0x1,
-		RCL_RM8_1 = 0x2,
-		RCR_RM8_1 = 0x3,
-		SAL_RM8_1 = 0x4, // Opcode group D0
-		SHR_RM8_1 = 0x5, // Opcode group D0
-		SAR_RM8_1 = 0x7, // Opcode group D0
-	};
-
-	enum class CPU_Group_Opcode_D1 : uint8_t
-	{
-		ROL_RM16_1 = 0x0,
-		ROR_RM16_1 = 0x1,
-		RCL_RM16_1 = 0x2,
-		RCR_RM16_1 = 0x3,
-		SAL_RM16_1 = 0x4, // Opcode group D1
-		SHR_RM16_1 = 0x5, // Opcode group D1
-		SAR_RM16_1 = 0x7, // Opcode group D1
-	};
-
-	enum class CPU_Group_Opcode_D2 : uint8_t
-	{
-		ROL_RM8_CL = 0x0,
-		ROR_RM8_CL = 0x1,
-		RCL_RM8_CL = 0x2,
-		RCR_RM8_CL = 0x3,
-		SAL_RM8_CL = 0x4, // Opcode group D2
-		SHR_RM8_CL = 0x5, // Opcode group D2
-		SAR_RM8_CL = 0x7, // Opcode group D2
-	};
-
-	enum class CPU_Group_Opcode_D3 : uint8_t
-	{
-		ROL_RM16_CL = 0x0,
-		ROR_RM16_CL = 0x1,
-		RCL_RM16_CL = 0x2,
-		RCR_RM16_CL = 0x3,
-		// Same as SHL
-		SAL_RM16_CL = 0x4, // Opcode group D3
-		SHR_RM16_CL = 0x5, // Opcode group D3
-		SAR_RM16_CL = 0x7, // Opcode group D3
-	};
-
-	enum class CPU_Group_Opcode_F6 : uint8_t
-	{
-		TEST_RM8_IMM8 = 0x0, // Opcode group F6
-		NOT_RM8 = 0x2, // Opcode group F6
-		NEG_RM8 = 0x3, // Opcode group F6
-		MUL_RM8 = 0x4, // Opcode group F6
-		IMUL_RM8 = 0x5,
-		DIV_RM8 = 0x6,
-		IDIV_RM8 = 0x7, // Opcode group F6
-	};
-
-	enum class CPU_Group_Opcode_F7 : uint8_t
-	{
-		TEST_RM16_IMM16 = 0x0, // Opcode group F7
-		NOT_RM16 = 0x2, // Opcode group F7
-		NEG_RM16 = 0x3, // Opcode group F7
-		MUL_RM16 = 0x4, // Opcode group F7
-		DIV_RM16 = 0x6,
-		IDIV_RM16 = 0x7, // Opcode group F6
+		TEST = 0x0, // Opcode group F6
+		NOT = 0x2, // Opcode group F6
+		NEG = 0x3, // Opcode group F6
+		MUL = 0x4, // Opcode group F6
+		IMUL = 0x5,
+		DIV = 0x6,
+		IDIV = 0x7, // Opcode group F6
 	};
 
 	enum class CPU_Group_Opcode_FE : uint8_t
@@ -223,6 +129,7 @@ class CPU
 		GROUP_OPCODE_FE = 0xFE,
 		GROUP_OPCODE_FF = 0xFF,
 
+		AAA = 0x37,
 		AAD = 0xD5,
 		AAM = 0xD4,
 		AAS = 0x3F,
@@ -541,7 +448,6 @@ private:
 	};
 
 	PIC& _pic; // The pic connected to the cpu
-	Bus& _bus;
 
 	std::array<Register, std::to_underlying(Registers::Count)> _regs{};
 	std::array<Register, std::to_underlying(Segment_Registers::Count)> _sregs{};
@@ -553,188 +459,16 @@ private:
 	bool _sti_enable{};
 	bool _zero_flag_check{};
 public:
-	class Instruction
-	{
-	private:
-		CPU& _cpu;
-
-		CPU_Opcode _rep{};
-		CPU_Opcode _operation{};
-
-		int _length{};
-
-		uint16_t _data_seg{};
-
-		bool _modrm{};
-
-		union Data
-		{
-			uint16_t data16{};
-			uint8_t data8[2];
-		};
-
-		Data _data1{};
-		Data _data2{};
-
-		bool _regmem_to_reg{}; // 1 = opposite
-
-		bool _width{}; // 8bit = 0, 16bit = 1
-
-		bool _data1_width{};
-		bool _data2_width{};
-
-		bool _default_seg{ true };
-
-		uint16_t _segment{};
-		uint16_t _offset{};
-	public:
-		Instruction(CPU& cpu);
-		void exec();
-
-		class Operand
-		{
-			CPU& _cpu;
-
-			bool _width{}; // true = 16, false = 8
-			std::variant<uint8_t*, uint16_t*> _operand{};
-		public:
-			// operator overloading for instructions
-			Operand(CPU& cpu, bool width);
-
-			Operand(const Operand& operand) : _cpu { operand._cpu }
-			{
-				_width = operand._width;
-				_operand = operand._operand;
-			}
-
-			void operator++(int val); // this would be inc...
-			void operator--(int val); // this would be dec...
-			void operator=(uint16_t value); // this would be mov...
-			void operator=(Data value);
-			void operator=(Operand value);
-			void operator+=(uint16_t value); // this would be add...
-			void operator+=(Data value);
-			void operator+=(Operand value);
-			void operator-=(uint16_t value); // this would be sub...
-			void operator-=(Data value);
-			void operator-=(Operand value);
-			void operator^=(uint16_t value); // this would be xor...
-			void operator^=(Data value);
-			void operator^=(Operand value);
-			void operator&=(uint16_t value); // this would be and...
-			void operator&=(Data value);
-			void operator&=(Operand value);
-			void operator|=(uint16_t value); // this would be or...
-			void operator|=(Data value);
-			void operator|=(Operand value);
-			void operator>>=(uint8_t value); // this would be shr...
-			void operator>>=(Data value);
-			void operator>>=(Operand value);
-			void sar(uint8_t value); // this would be sar...
-			void sar(Data value);
-			void sar(Operand value);
-			void operator<<=(uint8_t value); // this would be shl/sal...
-			void operator<<=(Data value);
-			void operator<<=(Operand value);
-			void rol(uint8_t value); // this would be rol...
-			void rol(Data value);
-			void rol(Operand value);
-			void ror(uint8_t value); // this would be ror/rcr...
-			void ror(Data value);
-			void ror(Operand value);
-			void rcl(uint8_t value); // this would be rcl...
-			void rcl(Data value);
-			void rcl(Operand value);
-			void rcr(uint8_t value); // this would be rcr...
-			void rcr(Data value);
-			void rcr(Operand value);
-			void mul(); // this would be mul...
-			void div(); // this would be div
-			void imul(); // this would be imul...
-			void imul(uint16_t value1, uint16_t value2); // this would be imul (3 operands)...
-			void imul(Data value);
-			void idiv(); // this would be idiv..
-			void neg(); // this would be neg..
-
-			uint16_t get_val16()
-			{
-				if (std::get<1>(_operand) < reinterpret_cast<uint16_t*>(0x100000))
-				{
-					return _cpu._bus.read16(reinterpret_cast<int>(std::get<1>(_operand)), false);
-				}
-
-				else
-				{
-					return *(std::get<1>(_operand));
-				}
-			}
-
-			uint8_t get_val8()
-			{
-				if (std::get<0>(_operand) < reinterpret_cast<uint8_t*>(0x100000))
-				{
-					return _cpu._bus.read8(reinterpret_cast<int>(std::get<0>(_operand)), false);
-				}
-
-				else
-				{
-					return *std::get<0>(_operand);
-				}
-			}
-
-			void write_val16(uint16_t value)
-			{
-				if (std::get<1>(_operand) < reinterpret_cast<uint16_t*>(0x100000))
-				{
-					_cpu._bus.write16(reinterpret_cast<int>(std::get<1>(_operand)), value, false);
-				}
-
-				else
-				{
-					*std::get<1>(_operand) = value;
-				}
-			}
-
-			void write_val8(uint8_t value)
-			{
-				if (std::get<0>(_operand) < reinterpret_cast<uint8_t*>(0x100000))
-				{
-					_cpu._bus.write8(reinterpret_cast<int>(std::get<0>(_operand)), value, false);
-				}
-
-				else
-				{
-					*std::get<0>(_operand) = value;
-				}
-			}
-
-			uint16_t*& get_addr16()
-			{
-				return std::get<1>(_operand);
-			}
-
-			uint8_t*& get_addr8()
-			{
-				return std::get<0>(_operand);
-			}
-		};
-
-		void calc_modrm_byte(int modrm_address, bool sreg);
-
-		private:
-			// if modrm byte... (well _reg is ax/al by default)
-			std::unique_ptr<Operand> _reg{ nullptr };
-			std::unique_ptr<Operand> _regmem{ nullptr };
-	};
+	Bus& _bus;
 
 	uint64_t ticks_total{};
 
 	CPU(PIC& pic, Bus& bus);
 
-	size_t get_hz() { return _hz; }
+	size_t get_hz() const { return _hz; }
 	void set_hz(size_t hz) { _hz = hz; }
 
-	size_t get_last_tick() { return _last_tick; }
+	size_t get_last_tick() const { return _last_tick; }
 	void set_last_tick(size_t last_tick) { _last_tick = last_tick; }
 
 	void reset();
@@ -742,12 +476,12 @@ public:
 	void push(uint16_t value);
 	uint16_t pop();
 
-	void modify_flag_carry(int old_val, int val, bool added, bool word);
+	template<CPU_Width T> void modify_flag_carry(T old_val, T val, bool added);
 	void modify_flag_parity(uint8_t val);
 	void modify_flag_half_carry(uint8_t old_val, uint8_t new_val);
-	void modify_flag_zero(uint16_t val);
-	void modify_flag_sign(int16_t val, bool word);
-	void modify_flag_overflow(int16_t op1, int16_t op2, int16_t result, bool word);
+	template<CPU_Width T> void modify_flag_zero(T val);
+	template<CPU_Width T> void modify_flag_sign(T val);
+	template<CPU_Width T> void modify_flag_overflow(T op1, T op2, T result);
 
 	uint16_t& get_reg(Registers reg);
 	uint8_t& get_reg(Registers_8 reg);
@@ -755,4 +489,85 @@ public:
 	uint16_t& get_sreg(Segment_Registers reg);
 
 	void check_irq();
+
+	void logic();
+	
+	template<CPU_Width T, bool sreg = false> std::pair<Op_Regmem<T>, Op_Reg<T>> fetch_modrm(bool default_seg, uint16_t data_seg);
+	template<Op_Normal_Type O> O fetch(uint16_t data_seg);
 };
+
+template<CPU_Width T> class Op_Mem : public Operand
+{
+	int _addr;
+public:
+	CPU& _cpu;
+	Op_Mem(CPU& cpu, int addr) : _cpu{cpu}, _addr{addr} {}
+	operator T() { return get_val(); }
+	Op_Mem& operator=(T value) { _cpu._bus.write<T>(_addr, value, false); return *this; }
+	T get_val() { return _cpu._bus.read<T>(_addr, false); }
+	int get_op() const { return _addr; }
+};
+
+template<CPU_Width T> class Op_Imm : public Operand
+{
+	T _imm;
+public:
+	CPU& _cpu;
+	operator T() { return get_val(); }
+	Op_Imm(CPU& cpu, T imm) : _cpu{cpu}, _imm{imm} {}
+	Op_Imm& operator=(T value) { _imm = value; return *this; }
+	T get_val() const { return _imm; }
+};
+
+template<CPU_Width T> class Op_Reg : public Operand
+{
+	T* _reg;
+public:
+	CPU& _cpu;
+	operator T() { return get_val(); }
+	Op_Reg(CPU& cpu, T* reg) : _cpu{cpu}, _reg{reg} {}
+	Op_Reg& operator=(T value) { *_reg = value; return *this; }
+	T get_val() { return *_reg; }
+	T* get_op() const { return _reg; }
+};
+
+template<CPU_Width T> class Op_Regmem : public Operand
+{
+	std::variant<int, T*> _regmem;
+public:
+	CPU& _cpu;
+	operator T() { return get_val(); }
+	Op_Regmem(CPU& cpu, std::variant<int, T*> regmem) : _cpu{cpu}, _regmem{regmem} {}
+	Op_Regmem& operator=(T value)
+	{
+		if (std::holds_alternative<T*>(_regmem))
+		{
+			*std::get<T*>(_regmem) = value;
+		}
+
+		else
+		{
+			_cpu._bus.write<T>(std::get<int>(_regmem), value, false);
+		}
+
+		return *this;
+	}
+
+	T get_val()
+	{
+		if(std::holds_alternative<T*>(_regmem))
+		{
+			return *std::get<T*>(_regmem);
+		}
+
+		else
+		{
+			return _cpu._bus.read<T>(std::get<int>(_regmem), false);
+		}
+	}
+	std::variant<int, T*> get_op() const { return _regmem; }
+};
+
+#include "operand.inl"
+#include "fetch.inl"
+#include "flags.inl"

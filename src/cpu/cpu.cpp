@@ -20,12 +20,12 @@ void CPU::reset()
 void CPU::push(uint16_t value)
 {
 	get_reg(Registers::SP) -= 2;
-	_bus.write16(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), value, false);
+	_bus.write<uint16_t>(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), value, false);
 }
 
 uint16_t CPU::pop()
 {
-	uint16_t value{ _bus.read16(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), false) };
+	uint16_t value{ _bus.read<uint16_t>(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), false) };
 	get_reg(Registers::SP) += 2;
 	return value;
 }
@@ -87,8 +87,8 @@ void CPU::check_irq()
 				push(get_sreg(Segment_Registers::CS));
 				push(get_reg(Registers::IP));
 
-				get_sreg(Segment_Registers::CS) = _bus.read16(to_linear(0, vector_offset + 2), false);
-				get_reg(Registers::IP) = _bus.read16(to_linear(0, vector_offset), false);
+				get_sreg(Segment_Registers::CS) = _bus.read<uint16_t>(to_linear(0, vector_offset + 2), false);
+				get_reg(Registers::IP) = _bus.read<uint16_t>(to_linear(0, vector_offset), false);
 
 				get_reg(Registers::Flags) &= ~flag_interrupt;
 				_halted = 0;

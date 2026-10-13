@@ -223,7 +223,7 @@ void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 
 	while(_channels[channel].current_word != 0xffff)
 	{
-		_bus.write8(_channels[channel].current_address, *temp, false);
+		_bus.write<uint8_t>(_channels[channel].current_address, *temp, false);
 		temp++;
 
 		if (_channels[channel].mode & DMA::mode_flag_decrement_select)

@@ -8,8 +8,7 @@ bool Blemu86::loop()
 
 	for (int i{}; i < (time_now - _cpu.get_last_tick()) / cpu_ns_per_tick; i++)
 	{
-		CPU::Instruction instruction{ _cpu };
-		instruction.exec();
+		_cpu.logic();
 
 		for (size_t k{}; k < _clocked_devices.size(); k++)
 		{
@@ -44,8 +43,8 @@ Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_
 	_bus.new_io_device(&_bios_rom);
 	_bus.new_io_device(&_dma);
 	_bus.new_io_device(&_fdc);
-
-	_fdds[0].insert("codegolf.bin");
+	
+	_fdds[0].insert("osall.img");
 	_cpu.set_last_tick(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 }
 

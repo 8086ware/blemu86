@@ -4,12 +4,11 @@
 #include <cmath>
 #include <bitset>
 
-CGA::CGA(sf::RenderWindow& win) : _win{ win }
+CGA::CGA()
 {
     std::println("[CGA] Init...");
+    _win_render = SDL_CreateRenderer(_win, NULL);
     _color_ctrl_reg |= color_ctrl_bbf;
-    _win.setVerticalSyncEnabled(false);
-	_win.setFramerateLimit(1000);
 }
 
 bool CGA::write(int address, uint8_t data, bool io)
@@ -23,25 +22,33 @@ bool CGA::write(int address, uint8_t data, bool io)
 			_mode_ctrl_reg = data;
 
 			if (_mode_ctrl_reg & mode_ctrl_high_res_graphics)
-			{
-                _image.resize({ 640, 200 });
+            {
+                SDL_Surface* old{ _surface };
+                _surface = SDL_ScaleSurface(_surface, 640, 200, SDL_SCALEMODE_NEAREST);
+                SDL_DestroySurface(old);
 			}
 
 			else if (_mode_ctrl_reg & mode_ctrl_graphics)
 			{
-                _image.resize({ 320, 200 });
-			}
+                SDL_Surface* old{ _surface };
+                _surface = SDL_ScaleSurface(_surface, 320, 200, SDL_SCALEMODE_NEAREST);
+                SDL_DestroySurface(old);
+            }
 
 			else
 			{
 				if (_mode_ctrl_reg & mode_ctrl_high_res)
 				{
-                    _image.resize({ 640, 200 });
+                    SDL_Surface* old{ _surface };
+                    _surface = SDL_ScaleSurface(_surface, 640, 200, SDL_SCALEMODE_NEAREST);
+                    SDL_DestroySurface(old);
                 }
 
 				else
 				{
-                    _image.resize({ 320, 200 });
+                    SDL_Surface* old{ _surface };
+                    _surface = SDL_ScaleSurface(_surface, 320, 200, SDL_SCALEMODE_NEAREST);
+                    SDL_DestroySurface(old);
                 }
 			}
 
@@ -113,7 +120,7 @@ void CGA::cycle()
 
     if (_mode_ctrl_reg & mode_ctrl_video) // Is this thing on?
     {
-        _win.clear();
+        SDL_ClearSurface(_surface, 0, 0, 0, 0);
 
         if (_mode_ctrl_reg & mode_ctrl_graphics)
         {
@@ -134,12 +141,12 @@ void CGA::cycle()
 
                             if (color)
                             {
-                                _image.setPixel({ x + i, y }, sf::Color::White);
+                                static_cast<SDL_Color*>(_surface->pixels)[y * width + (x + i)] = { 0xff, 0xff, 0xff, 0xff };
                             }
 
                             else
                             {
-                                _image.setPixel({ x + i, y }, sf::Color::Black);
+                                static_cast<SDL_Color*>(_surface->pixels)[y * width + (x + i)] = { 0,0,0,0 };
                             }
                         }
                     }
@@ -161,12 +168,12 @@ void CGA::cycle()
 
                             if (_color_ctrl_reg & color_ctrl_palette)
                             {
-                                _image.setPixel({ x + i, y }, cga_palette_1[color]);
+                                static_cast<SDL_Color*>(_surface->pixels)[y * width + (x + i)] = cga_palette_1[color];
                             }
 
                             else
                             {
-                                _image.setPixel({ x + i, y }, cga_palette_0[color]);
+                                static_cast<SDL_Color*>(_surface->pixels)[y * width + (x + i)] = cga_palette_0[color];
                             }
                         }
                     }
@@ -216,12 +223,12 @@ void CGA::cycle()
                         {
                             if ((font[font_location + font_y] << font_x) & 0x80)
                             {
-                                _image.setPixel({ write_location_x + font_x, write_location_y + font_y }, cga_4bit_palette[fg_color]);
+                                static_cast<SDL_Color*>(_surface->pixels)[(write_location_y + font_y) * width + (write_location_x + font_x)] = cga_4bit_palette[fg_color];
                             }
 
                             else
                             {
-                                _image.setPixel({ write_location_x + font_x, write_location_y + font_y }, cga_4bit_palette[bg_color]);
+                                static_cast<SDL_Color*>(_surface->pixels)[(write_location_y + font_y) * width + (write_location_x + font_x)] = cga_4bit_palette[bg_color];
                             }
                         }
                     }
@@ -240,20 +247,22 @@ void CGA::cycle()
                 {
                     for (unsigned int x{}; x < 8; x++)
                     {
-                        _image.setPixel({ write_location_x + x, write_location_y + y }, sf::Color::White);
+                        static_cast<SDL_Color*>(_surface->pixels)[(write_location_y + y) * width + (write_location_x + x)] = { 0xff, 0xff, 0xff, 0xff };
                     }
                 }
             }
         }
 
-        sf::Texture texture{ _image };
-        sf::Sprite sprite{ texture };
-        sf::Vector2u window_size{ _win.getView().getSize() };
-
-        sprite.setScale({ static_cast<float>(window_size.x) / width, static_cast<float>(window_size.y) / height });
-        sprite.setPosition({ 0,0 });
-
-        _win.draw(sprite);
-        _win.display();
+        SDL_Texture* screen_texture{ SDL_CreateTextureFromSurface(_win_render, _surface) };
+        SDL_SetTextureScaleMode(screen_texture, SDL_SCALEMODE_NEAREST);
+        SDL_RenderTexture(_win_render, screen_texture, NULL, NULL);
+        SDL_RenderPresent(_win_render);
+        SDL_DestroyTexture(screen_texture);
     }
+}
+
+CGA::~CGA()
+{
+    SDL_DestroyRenderer(_win_render);
+    SDL_DestroySurface(_surface);
 }

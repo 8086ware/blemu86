@@ -1,474 +1,475 @@
 #include "keyboard.h"
 #include <utility>
 #include <print>
+#include <SDL3/SDL.h>
 
-Keyboard::Keyboard(sf::Window& win, PPI& ppi, PIC& pic) : _ppi{ ppi }, _pic{ pic }, _win{ win }
+Keyboard::Keyboard(PPI& ppi, PIC& pic) : _ppi{ ppi }, _pic{ pic }
 {
     std::println("[XTKeyboard] Init...");
 }
 
 void Keyboard::cycle()
 {
-    const std::optional event{ _win.pollEvent() };
+    SDL_Event event{};
 
-    if (event && (event->is<sf::Event::KeyPressed>() || event->is<sf::Event::KeyReleased>()))
+    if (SDL_PollEvent(&event))
     {
-        sf::Keyboard::Scancode scancode{};
+        if ((event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP))
+        {
+            SDL_Scancode scancode{ event.key.scancode };
 
-        if (event->is<sf::Event::KeyPressed>()) scancode = event->getIf<sf::Event::KeyPressed>()->scancode;
-        if (event->is<sf::Event::KeyReleased>()) scancode = event->getIf<sf::Event::KeyReleased>()->scancode;
-
-        switch (scancode)
-        {
-        case sf::Keyboard::Scancode::Escape:
-        {
-            _scancodes.push_back(0x1);
-            break;
-        }
-        case sf::Keyboard::Scancode::Enter:
-        {
-            _scancodes.push_back(0x1C);
-            break;
-        }
-        case sf::Keyboard::Scancode::A:
-        {
-            _scancodes.push_back(0x1E);
-            break;
-        }
-        case sf::Keyboard::Scancode::B:
-        {
-            _scancodes.push_back(0x30);
-            break;
-        }
-        case sf::Keyboard::Scancode::C:
-        {
-            _scancodes.push_back(0x2E);
-            break;
-        }
-        case sf::Keyboard::Scancode::D:
-        {
-            _scancodes.push_back(0x20);
-            break;
-        }
-        case sf::Keyboard::Scancode::E:
-        {
-            _scancodes.push_back(0x12);
-            break;
-        }
-        case sf::Keyboard::Scancode::F:
-        {
-            _scancodes.push_back(0x21);
-            break;
-        }
-        case sf::Keyboard::Scancode::G:
-        {
-            _scancodes.push_back(0x22);
-            break;
-        }
-        case sf::Keyboard::Scancode::H:
-        {
-            _scancodes.push_back(0x23);
-            break;
-        }
-        case sf::Keyboard::Scancode::I:
-        {
-            _scancodes.push_back(0x17);
-            break;
-        }
-        case sf::Keyboard::Scancode::J:
-        {
-            _scancodes.push_back(0x24);
-            break;
-        }
-        case sf::Keyboard::Scancode::K:
-        {
-            _scancodes.push_back(0x25);
-            break;
-        }
-        case sf::Keyboard::Scancode::L:
-        {
-            _scancodes.push_back(0x26);
-            break;
-        }
-        case sf::Keyboard::Scancode::M:
-        {
-            _scancodes.push_back(0x32);
-            break;
-        }
-        case sf::Keyboard::Scancode::N:
-        {
-            _scancodes.push_back(0x31);
-            break;
-        }
-        case sf::Keyboard::Scancode::O:
-        {
-            _scancodes.push_back(0x18);
-            break;
-        }
-        case sf::Keyboard::Scancode::P:
-        {
-            _scancodes.push_back(0x19);
-            break;
-        }
-        case sf::Keyboard::Scancode::Q:
-        {
-            _scancodes.push_back(0x10);
-            break;
-        }
-        case sf::Keyboard::Scancode::R:
-        {
-            _scancodes.push_back(0x13);
-            break;
-        }
-        case sf::Keyboard::Scancode::S:
-        {
-            _scancodes.push_back(0x1F);
-            break;
-        }
-        case sf::Keyboard::Scancode::T:
-        {
-            _scancodes.push_back(0x14);
-            break;
-        }
-        case sf::Keyboard::Scancode::U:
-        {
-            _scancodes.push_back(0x16);
-            break;
-        }
-        case sf::Keyboard::Scancode::V:
-        {
-            _scancodes.push_back(0x2F);
-            break;
-        }
-        case sf::Keyboard::Scancode::W:
-        {
-            _scancodes.push_back(0x11);
-            break;
-        }
-        case sf::Keyboard::Scancode::X:
-        {
-            _scancodes.push_back(0x2D);
-            break;
-        }
-        case sf::Keyboard::Scancode::Y:
-        {
-            _scancodes.push_back(0x15);
-            break;
-        }
-        case sf::Keyboard::Scancode::Z:
-        {
-            _scancodes.push_back(0x2C);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num0:
-        {
-            _scancodes.push_back(0x0B);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num1:
-        {
-            _scancodes.push_back(0x02);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num2:
-        {
-            _scancodes.push_back(0x03);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num3:
-        {
-            _scancodes.push_back(0x04);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num4:
-        {
-            _scancodes.push_back(0x05);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num5:
-        {
-            _scancodes.push_back(0x06);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num6:
-        {
-            _scancodes.push_back(0x07);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num7:
-        {
-            _scancodes.push_back(0x08);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num8:
-        {
-            _scancodes.push_back(0x09);
-            break;
-        }
-        case sf::Keyboard::Scancode::Num9:
-        {
-            _scancodes.push_back(0x0A);
-            break;
-        }
-        case sf::Keyboard::Scancode::Grave:
-        {
-            _scancodes.push_back(0x29);
-            break;
-        }
-        case sf::Keyboard::Scancode::NumpadMinus:
-        {
-            _scancodes.push_back(0x0C);
-            break;
-        }
-        case sf::Keyboard::Scancode::Equal:
-        {
-            _scancodes.push_back(0x0D);
-            break;
-        }
-        case sf::Keyboard::Scancode::Backslash:
-        {
-            _scancodes.push_back(0x2B);
-            break;
-        }
-        case sf::Keyboard::Scancode::Backspace:
-        {
-            _scancodes.push_back(0x0E);
-            break;
-        }
-        case sf::Keyboard::Scancode::Space:
-        {
-            _scancodes.push_back(0x39);
-            break;
-        }
-        case sf::Keyboard::Scancode::Tab:
-        {
-            _scancodes.push_back(0x0F);
-            break;
-        }
-        case sf::Keyboard::Scancode::CapsLock:
-        {
-            _scancodes.push_back(0x3A);
-            break;
-        }
-        case sf::Keyboard::Scancode::LShift:
-        {
-            _scancodes.push_back(0x2A);
-            break;
-        }
-        case sf::Keyboard::Scancode::LControl:
-        {
-            _scancodes.push_back(0x1D);
-            break;
-        }
-        case sf::Keyboard::Scancode::LAlt:
-        {
-            _scancodes.push_back(0x38);
-            break;
-        }
-        case sf::Keyboard::Scancode::F1:
-        {
-            _scancodes.push_back(0x3b);
-            break;
-        }
-        case sf::Keyboard::Scancode::F2:
-        {
-            _scancodes.push_back(0x3c);
-            break;
-        }
-        case sf::Keyboard::Scancode::F3:
-        {
-            _scancodes.push_back(0x3d);
-            break;
-        }
-        case sf::Keyboard::Scancode::F4:
-        {
-            _scancodes.push_back(0x3e);
-            break;
-        }
-        case sf::Keyboard::Scancode::F5:
-        {
-            _scancodes.push_back(0x3f);
-            break;
-        }
-        case sf::Keyboard::Scancode::F6:
-        {
-            _scancodes.push_back(0x40);
-            break;
-        }
-        case sf::Keyboard::Scancode::F7:
-        {
-            _scancodes.push_back(0x41);
-            break;
-        }
-        case sf::Keyboard::Scancode::F8:
-        {
-            _scancodes.push_back(0x42);
-            break;
-        }
-        case sf::Keyboard::Scancode::F9:
-        {
-            _scancodes.push_back(0x43);
-            break;
-        }
-        case sf::Keyboard::Scancode::F10:
-        {
-            _scancodes.push_back(0x44);
-            break;
-        }
-        case sf::Keyboard::Scancode::F11:
-        {
-            _scancodes.push_back(0x57);
-            break;
-        }
-        case sf::Keyboard::Scancode::F12:
-        {
-            _scancodes.push_back(0x58);
-            break;
-        }
-        case sf::Keyboard::Scancode::Up:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x48);
-            break;
-        }
-        case sf::Keyboard::Scancode::Down:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x50);
-            break;
-        }
-        case sf::Keyboard::Scancode::Left:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x4B);
-            break;
-        }
-        case sf::Keyboard::Scancode::Right:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x4D);
-            break;
-        }
-        case sf::Keyboard::Scancode::Period:
-        {
-            _scancodes.push_back(0x34);
-            break;
-        }
-        case sf::Keyboard::Scancode::Insert:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x52);
-            break;
-        }
-        case sf::Keyboard::Scancode::Home:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x47);
-            break;
-        }
-        case sf::Keyboard::Scancode::PageUp:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x49);
-            break;
-        }
-        case sf::Keyboard::Scancode::Delete:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x53);
-            break;
-        }
-        case sf::Keyboard::Scancode::End:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x4F);
-            break;
-        }
-        case sf::Keyboard::Scancode::PageDown:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x51);
-            break;
-        }
-        case sf::Keyboard::Scancode::RControl:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x1D);
-            break;
-        }
-        case sf::Keyboard::Scancode::RSystem:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x5C);
-
-            break;
-        }
-        case sf::Keyboard::Scancode::RAlt:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x38);
-
-            break;
-        }
-        case sf::Keyboard::Scancode::Application:
-        {
-            _scancodes.push_back(0xE0);
-            _scancodes.push_back(0x5D);
-            break;
-        }
-        case sf::Keyboard::Scancode::LBracket:
-        {
-            _scancodes.push_back(0x1A);
-            break;
-        }
-        case sf::Keyboard::Scancode::RBracket:
-        {
-            _scancodes.push_back(0x1B);
-            break;
-        }
-        case sf::Keyboard::Scancode::Semicolon:
-        {
-            _scancodes.push_back(0x27);
-            break;
-        }
-        case sf::Keyboard::Scancode::Comma:
-        {
-            _scancodes.push_back(0x33);
-            break;
-        }
-        case sf::Keyboard::Scancode::Slash:
-        {
-            _scancodes.push_back(0x35);
-            break;
-        }
-        case sf::Keyboard::Scancode::Apostrophe:
-        {
-            _scancodes.push_back(0x28);
-            break;
-        }
-        case sf::Keyboard::Scancode::NumLock:
-        {
-            _scancodes.push_back(0x45);
-            break;
-        }
-        }
-
-        if (event->is<sf::Event::KeyReleased>() && !_scancodes.empty())
-        {
-            _scancodes.back() += 0x80;
-        }
-
-        std::optional<uint8_t> ppi_port_b{ _ppi.read(std::to_underlying(PPI::Port::B), true) };
-
-        if ((ppi_port_b.value() & PPI::b_keyboard_disable) == 0)
-        {
-            if (!_scancodes.empty())
+            switch (scancode)
             {
-                _ppi.port_a = _scancodes.back();
-                _scancodes.pop_back();
+            case SDL_SCANCODE_ESCAPE:
+            {
+                _scancodes.push_back(0x1);
+                break;
+            }
+            case SDL_SCANCODE_RETURN:
+            {
+                _scancodes.push_back(0x1C);
+                break;
+            }
+            case SDL_SCANCODE_A:
+            {
+                _scancodes.push_back(0x1E);
+                break;
+            }
+            case SDL_SCANCODE_B:
+            {
+                _scancodes.push_back(0x30);
+                break;
+            }
+            case SDL_SCANCODE_C:
+            {
+                _scancodes.push_back(0x2E);
+                break;
+            }
+            case SDL_SCANCODE_D:
+            {
+                _scancodes.push_back(0x20);
+                break;
+            }
+            case SDL_SCANCODE_E:
+            {
+                _scancodes.push_back(0x12);
+                break;
+            }
+            case SDL_SCANCODE_F:
+            {
+                _scancodes.push_back(0x21);
+                break;
+            }
+            case SDL_SCANCODE_G:
+            {
+                _scancodes.push_back(0x22);
+                break;
+            }
+            case SDL_SCANCODE_H:
+            {
+                _scancodes.push_back(0x23);
+                break;
+            }
+            case SDL_SCANCODE_I:
+            {
+                _scancodes.push_back(0x17);
+                break;
+            }
+            case SDL_SCANCODE_J:
+            {
+                _scancodes.push_back(0x24);
+                break;
+            }
+            case SDL_SCANCODE_K:
+            {
+                _scancodes.push_back(0x25);
+                break;
+            }
+            case SDL_SCANCODE_L:
+            {
+                _scancodes.push_back(0x26);
+                break;
+            }
+            case SDL_SCANCODE_M:
+            {
+                _scancodes.push_back(0x32);
+                break;
+            }
+            case SDL_SCANCODE_N:
+            {
+                _scancodes.push_back(0x31);
+                break;
+            }
+            case SDL_SCANCODE_O:
+            {
+                _scancodes.push_back(0x18);
+                break;
+            }
+            case SDL_SCANCODE_P:
+            {
+                _scancodes.push_back(0x19);
+                break;
+            }
+            case SDL_SCANCODE_Q:
+            {
+                _scancodes.push_back(0x10);
+                break;
+            }
+            case SDL_SCANCODE_R:
+            {
+                _scancodes.push_back(0x13);
+                break;
+            }
+            case SDL_SCANCODE_S:
+            {
+                _scancodes.push_back(0x1F);
+                break;
+            }
+            case SDL_SCANCODE_T:
+            {
+                _scancodes.push_back(0x14);
+                break;
+            }
+            case SDL_SCANCODE_U:
+            {
+                _scancodes.push_back(0x16);
+                break;
+            }
+            case SDL_SCANCODE_V:
+            {
+                _scancodes.push_back(0x2F);
+                break;
+            }
+            case SDL_SCANCODE_W:
+            {
+                _scancodes.push_back(0x11);
+                break;
+            }
+            case SDL_SCANCODE_X:
+            {
+                _scancodes.push_back(0x2D);
+                break;
+            }
+            case SDL_SCANCODE_Y:
+            {
+                _scancodes.push_back(0x15);
+                break;
+            }
+            case SDL_SCANCODE_Z:
+            {
+                _scancodes.push_back(0x2C);
+                break;
+            }
+            case SDL_SCANCODE_0:
+            {
+                _scancodes.push_back(0x0B);
+                break;
+            }
+            case SDL_SCANCODE_1:
+            {
+                _scancodes.push_back(0x02);
+                break;
+            }
+            case SDL_SCANCODE_2:
+            {
+                _scancodes.push_back(0x03);
+                break;
+            }
+            case SDL_SCANCODE_3:
+            {
+                _scancodes.push_back(0x04);
+                break;
+            }
+            case SDL_SCANCODE_4:
+            {
+                _scancodes.push_back(0x05);
+                break;
+            }
+            case SDL_SCANCODE_5:
+            {
+                _scancodes.push_back(0x06);
+                break;
+            }
+            case SDL_SCANCODE_6:
+            {
+                _scancodes.push_back(0x07);
+                break;
+            }
+            case SDL_SCANCODE_7:
+            {
+                _scancodes.push_back(0x08);
+                break;
+            }
+            case SDL_SCANCODE_8:
+            {
+                _scancodes.push_back(0x09);
+                break;
+            }
+            case SDL_SCANCODE_9:
+            {
+                _scancodes.push_back(0x0A);
+                break;
+            }
+            case SDL_SCANCODE_GRAVE:
+            {
+                _scancodes.push_back(0x29);
+                break;
+            }
+            case SDL_SCANCODE_KP_MINUS:
+            {
+                _scancodes.push_back(0x0C);
+                break;
+            }
+            case SDL_SCANCODE_EQUALS:
+            {
+                _scancodes.push_back(0x0D);
+                break;
+            }
+            case SDL_SCANCODE_BACKSLASH:
+            {
+                _scancodes.push_back(0x2B);
+                break;
+            }
+            case SDL_SCANCODE_BACKSPACE:
+            {
+                _scancodes.push_back(0x0E);
+                break;
+            }
+            case SDL_SCANCODE_SPACE:
+            {
+                _scancodes.push_back(0x39);
+                break;
+            }
+            case SDL_SCANCODE_TAB:
+            {
+                _scancodes.push_back(0x0F);
+                break;
+            }
+            case SDL_SCANCODE_CAPSLOCK:
+            {
+                _scancodes.push_back(0x3A);
+                break;
+            }
+            case SDL_SCANCODE_LSHIFT:
+            {
+                _scancodes.push_back(0x2A);
+                break;
+            }
+            case SDL_SCANCODE_LCTRL:
+            {
+                _scancodes.push_back(0x1D);
+                break;
+            }
+            case SDL_SCANCODE_LALT:
+            {
+                _scancodes.push_back(0x38);
+                break;
+            }
+            case SDL_SCANCODE_F1:
+            {
+                _scancodes.push_back(0x3b);
+                break;
+            }
+            case SDL_SCANCODE_F2:
+            {
+                _scancodes.push_back(0x3c);
+                break;
+            }
+            case SDL_SCANCODE_F3:
+            {
+                _scancodes.push_back(0x3d);
+                break;
+            }
+            case SDL_SCANCODE_F4:
+            {
+                _scancodes.push_back(0x3e);
+                break;
+            }
+            case SDL_SCANCODE_F5:
+            {
+                _scancodes.push_back(0x3f);
+                break;
+            }
+            case SDL_SCANCODE_F6:
+            {
+                _scancodes.push_back(0x40);
+                break;
+            }
+            case SDL_SCANCODE_F7:
+            {
+                _scancodes.push_back(0x41);
+                break;
+            }
+            case SDL_SCANCODE_F8:
+            {
+                _scancodes.push_back(0x42);
+                break;
+            }
+            case SDL_SCANCODE_F9:
+            {
+                _scancodes.push_back(0x43);
+                break;
+            }
+            case SDL_SCANCODE_F10:
+            {
+                _scancodes.push_back(0x44);
+                break;
+            }
+            case SDL_SCANCODE_F11:
+            {
+                _scancodes.push_back(0x57);
+                break;
+            }
+            case SDL_SCANCODE_F12:
+            {
+                _scancodes.push_back(0x58);
+                break;
+            }
+            case SDL_SCANCODE_UP:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x48);
+                break;
+            }
+            case SDL_SCANCODE_DOWN:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x50);
+                break;
+            }
+            case SDL_SCANCODE_LEFT:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x4B);
+                break;
+            }
+            case SDL_SCANCODE_RIGHT:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x4D);
+                break;
+            }
+            case SDL_SCANCODE_PERIOD:
+            {
+                _scancodes.push_back(0x34);
+                break;
+            }
+            case SDL_SCANCODE_INSERT:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x52);
+                break;
+            }
+            case SDL_SCANCODE_HOME:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x47);
+                break;
+            }
+            case SDL_SCANCODE_PAGEUP:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x49);
+                break;
+            }
+            case SDL_SCANCODE_DELETE:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x53);
+                break;
+            }
+            case SDL_SCANCODE_END:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x4F);
+                break;
+            }
+            case SDL_SCANCODE_PAGEDOWN:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x51);
+                break;
+            }
+            case SDL_SCANCODE_RCTRL:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x1D);
+                break;
+            }
+            case SDL_SCANCODE_RGUI:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x5C);
+
+                break;
+            }
+            case SDL_SCANCODE_RALT:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x38);
+
+                break;
+            }
+            case SDL_SCANCODE_APPLICATION:
+            {
+                _scancodes.push_back(0xE0);
+                _scancodes.push_back(0x5D);
+                break;
+            }
+            case SDL_SCANCODE_LEFTBRACKET:
+            {
+                _scancodes.push_back(0x1A);
+                break;
+            }
+            case SDL_SCANCODE_RIGHTBRACKET:
+            {
+                _scancodes.push_back(0x1B);
+                break;
+            }
+            case SDL_SCANCODE_SEMICOLON:
+            {
+                _scancodes.push_back(0x27);
+                break;
+            }
+            case SDL_SCANCODE_COMMA:
+            {
+                _scancodes.push_back(0x33);
+                break;
+            }
+            case SDL_SCANCODE_SLASH:
+            {
+                _scancodes.push_back(0x35);
+                break;
+            }
+            case SDL_SCANCODE_APOSTROPHE:
+            {
+                _scancodes.push_back(0x28);
+                break;
+            }
+            case SDL_SCANCODE_NUMLOCKCLEAR:
+            {
+                _scancodes.push_back(0x45);
+                break;
+            }
             }
 
-            _pic.raise(PIC::IRQ::Keyboard);
+            if (event.type == SDL_EVENT_KEY_UP && !_scancodes.empty())
+            {
+                _scancodes.back() += 0x80;
+            }
+
+            std::optional<uint8_t> ppi_port_b{ _ppi.read(std::to_underlying(PPI::Port::B), true) };
+
+            if ((ppi_port_b.value() & PPI::b_keyboard_disable) == 0)
+            {
+                if (!_scancodes.empty())
+                {
+                    _ppi.port_a = _scancodes.back();
+                    _scancodes.pop_back();
+                }
+
+                _pic.raise(PIC::IRQ::Keyboard);
+            }
         }
     }
 }

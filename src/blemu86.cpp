@@ -29,6 +29,8 @@ bool Blemu86::loop()
 
 Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_name)
 {
+	SDL_Init(SDL_INIT_VIDEO);
+
 	srand(time(NULL)); // needed for some things
 
 	new_clock_device(&_keyboard, 15000);
@@ -46,6 +48,11 @@ Blemu86::Blemu86(std::string_view bios_rom_file_name) : _bios_rom(bios_rom_file_
 	
 	_fdds[0].insert("osall.img");
 	_cpu.set_last_tick(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+}
+
+Blemu86::~Blemu86()
+{
+	SDL_Quit();
 }
 
 void Blemu86::new_clock_device(Clock_Device* device, double hz)

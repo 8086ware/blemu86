@@ -3,7 +3,7 @@
 #include "device.h"
 #include <array>
 #include <print>
-#include <SFML/Graphics.hpp>
+#include <SDL3/SDL.h>
 
 // It uses cga ports and memory space to i/o so we use the Device base class
 // Contains all display information as well
@@ -331,13 +331,14 @@ public:
 		Color_Control = 0x3D9,
 	};
 
-    CGA(sf::RenderWindow& win);
+    CGA();
+    ~CGA();
 
     CrtC crtc{};
     // This is for 320x200 graphics mode (brown, green, red) and (magenta, cyan, white)
-    static constexpr std::array<sf::Color, 4> cga_palette_0{ { {0x0, 0x0, 0x0, 0x0}, { 0, 0xAA, 0x0, 0xFF }, {0xAA, 0x0, 0x0, 0xFF}, {0xAA,  0x55, 0x0, 0xFF} } };
-    static constexpr std::array<sf::Color, 4> cga_palette_1{ { {0x0, 0x0, 0x0, 0x0}, {0x0, 0xAA, 0xAA, 0xFF}, {0xAA, 0x0, 0xAA, 0xFF}, {0xAA,  0xAA, 0xAA, 0xFF} } };
-    static constexpr std::array<sf::Color, 16> cga_4bit_palette // This contains the 16 CGA colors
+    static constexpr std::array<SDL_Color, 4> cga_palette_0{ { {0x0, 0x0, 0x0, 0x0}, { 0, 0xAA, 0x0, 0xFF }, {0xAA, 0x0, 0x0, 0xFF}, {0xAA,  0x55, 0x0, 0xFF} } };
+    static constexpr std::array<SDL_Color, 4> cga_palette_1{ { {0x0, 0x0, 0x0, 0x0}, {0x0, 0xAA, 0xAA, 0xFF}, {0xAA, 0x0, 0xAA, 0xFF}, {0xAA,  0xAA, 0xAA, 0xFF} } };
+    static constexpr std::array<SDL_Color, 16> cga_4bit_palette // This contains the 16 CGA colors
     { {
         {0x0, 0x0, 0x0, 0xFF},
         {0x0, 0x0, 0xAA, 0xFF},
@@ -357,11 +358,12 @@ public:
         {0xFF, 0xFF, 0xFF, 0xFF},
     } };
 private:
+    SDL_Window* _win{ SDL_CreateWindow("Blemu86 CGA Output", 1280, 720, SDL_WINDOW_RESIZABLE) };
+
 	std::array<uint8_t, cga_ram_size> _ram{};
     
-	sf::RenderWindow& _win;
-
-    sf::Image _image{};
+    SDL_Renderer* _win_render{ nullptr };
+    SDL_Surface* _surface{ SDL_CreateSurface(640, 200, SDL_PIXELFORMAT_ABGR8888)};
 
 	uint8_t _mode_ctrl_reg{};
 	uint8_t _color_ctrl_reg{};

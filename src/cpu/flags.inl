@@ -4,7 +4,7 @@
 
 template<CPU_Width T> void CPU::modify_flag_carry(T old_val, T val, bool added)
 {
-	if ((static_cast<int>(old_val + val) > std::numeric_limits<T>::max() && added) || (static_cast<int>(old_val - val) < 0 && !added))
+	if ((old_val > val && added) || (old_val < val && !added))
 	{
 		get_reg(Registers::Flags) |= flag_carry;
 	}

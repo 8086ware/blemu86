@@ -4,10 +4,9 @@
 #include <cmath>
 #include <bitset>
 
-CGA::CGA()
+CGA::CGA(SDL_Renderer* win_render) : _win_render{win_render}
 {
     std::println("[CGA] Init...");
-    _win_render = SDL_CreateRenderer(_win, NULL);
     _color_ctrl_reg |= color_ctrl_bbf;
 }
 

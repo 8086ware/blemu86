@@ -26,8 +26,10 @@ private:
 	float sync_hz{ 200 };
 	std::vector<std::pair<Clock_Device*, double>> _clocked_devices{}; // Devices to cycle through (e.g: PIT) and the HZ
 	std::unique_ptr<uint8_t[]> _ram{ std::make_unique<uint8_t[]>(ram_size) };
+	SDL_Window* _win{SDL_CreateWindow("Blemu86", 800, 600, SDL_WINDOW_RESIZABLE)};
+	SDL_Renderer* _win_render{SDL_CreateRenderer(_win, NULL)};
 	Bus _bus{ {_ram.get(), ram_size} };
-	CGA _cga{};
+	CGA _cga{_win_render};
 	PIC _pic{};
 	PPI _ppi{ _pic };
 	PIT _pit{ _pic };

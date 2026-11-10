@@ -331,7 +331,7 @@ public:
 		Color_Control = 0x3D9,
 	};
 
-    CGA();
+    CGA(SDL_Renderer* win_render);
     ~CGA();
 
     CrtC crtc{};
@@ -358,12 +358,10 @@ public:
         {0xFF, 0xFF, 0xFF, 0xFF},
     } };
 private:
-    SDL_Window* _win{ SDL_CreateWindow("Blemu86 CGA Output", 1280, 720, SDL_WINDOW_RESIZABLE) };
-
 	std::array<uint8_t, cga_ram_size> _ram{};
     
-    SDL_Renderer* _win_render{ nullptr };
-    SDL_Surface* _surface{ SDL_CreateSurface(640, 200, SDL_PIXELFORMAT_ABGR8888)};
+	SDL_Renderer* _win_render{ nullptr };
+	SDL_Surface* _surface{ SDL_CreateSurface(640, 200, SDL_PIXELFORMAT_ABGR8888)};
 
 	uint8_t _mode_ctrl_reg{};
 	uint8_t _color_ctrl_reg{};

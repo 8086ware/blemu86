@@ -119,7 +119,7 @@ void CGA::cycle()
 
     if (_mode_ctrl_reg & mode_ctrl_video) // Is this thing on?
     {
-        SDL_ClearSurface(_surface, 0, 0, 0, 0);
+        SDL_RenderClear(_win_render);
 
         if (_mode_ctrl_reg & mode_ctrl_graphics)
         {

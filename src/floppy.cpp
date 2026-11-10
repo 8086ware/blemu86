@@ -228,7 +228,7 @@ bool FDC::write(int address, uint8_t data, bool io)
 							_selected_fdd->seek(cylinder_number, 0, sector_number);
 						}
 
-						_selected_fdd->read({ &fdd_buffer.get()[(end_of_track - (sector_number - 1)) * bytes_read - 1], (end_of_track - (sector_number - 1)) * bytes_read });
+						_selected_fdd->read({ &fdd_buffer.get()[(end_of_track - (sector_number - 1)) * bytes_read], (end_of_track - (sector_number - 1)) * bytes_read });
 					}
 
 					_dma.operation(2, { fdd_buffer.get(), ((end_of_track - (sector_number - 1)) * bytes_read) * mt_read_multiplier});

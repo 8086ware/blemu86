@@ -23,14 +23,16 @@ FDD::FDD(std::string_view file_name)
 
 bool FDD::insert(std::string_view file_name)
 {
+	std::fstream temp{};
+
 	if (file_name.empty())
 	{
 		return false;
 	}
 
-	_file.open(std::filesystem::path(file_name), std::ios_base::binary | std::ios_base::out | std::ios_base::in);
+	temp.open(std::filesystem::path(file_name), std::ios_base::binary | std::ios_base::out | std::ios_base::in);
 
-	if (!_file.is_open())
+	if (!temp.is_open())
 	{
 		std::println("[FDD] Inserted with {} but failed (file not found?)", file_name);
 		return false;
@@ -50,6 +52,8 @@ bool FDD::insert(std::string_view file_name)
 			break;
 		}
 	}
+
+	_file = std::move(temp);
 
 	return true;
 }

@@ -7,11 +7,11 @@
 #include <utility>
 #include "chipset/bus.h"
 #include "cpu_concepts.h"
+#include "to_linear.h"
 
 // emulates 186 feature 16 bit cpu
 
-class CPU;
-class Operand
+template<CPU_Width T> class Operand
 {
 public:
 	// operator overloading for instructions
@@ -19,26 +19,29 @@ public:
 
 	auto&& operator++(this auto&& self, int val); // this would be inc...
 	auto&& operator--(this auto&& self, int val); // this would be dec...
-	auto&& operator+=(this auto&& self, auto value); // this would be add...
-	auto&& operator-=(this auto&& self, auto value); // this would be sub...
-	auto&& operator^=(this auto&& self, auto value); // this would be xor...
-	auto&& operator&=(this auto&& self, auto value); // this would be and...
-	auto&& operator|=(this auto&& self, auto value); // this would be or...
-	auto&& operator>>=(this auto&& self, auto value); // this would be shr...
-	auto&& sar(this auto&& self, auto value); // this would be sar...
-	auto&& operator<<=(this auto&& self, auto value); // this would be shl/sal...
-	auto&& rol(this auto&& self, auto value); // this would be rol...
-	auto&& ror(this auto&& self, auto value); // this would be ror/rcr...
-	auto&& rcl(this auto&& self, auto value); // this would be rcl...
-	auto&& rcr(this auto&& self, auto value); // this would be rcr...
+	auto&& operator+=(this auto&& self, T value); // this would be add...
+	auto&& operator-=(this auto&& self, T value); // this would be sub...
+	auto&& operator^=(this auto&& self, T value); // this would be xor...
+	auto&& operator&=(this auto&& self, T value); // this would be and...
+	auto&& operator|=(this auto&& self, T value); // this would be or...
+	auto&& operator>>=(this auto&& self, T value); // this would be shr...
+	auto&& sar(this auto&& self, T value); // this would be sar...
+	auto&& operator<<=(this auto&& self, T value); // this would be shl/sal...
+	auto&& rol(this auto&& self, T value); // this would be rol...
+	auto&& ror(this auto&& self, T value); // this would be ror/rcr...
+	auto&& rcl(this auto&& self, T value); // this would be rcl...
+	auto&& rcr(this auto&& self, T value); // this would be rcr...
 	auto&& mul(this auto&& self); // this would be mul...
 	auto&& div(this auto&& self); // this would be div
 	auto&& imul(this auto&& self); // this would be imul...
-	auto&& imul(this auto&& self, auto value1, auto value2); // this would be imul (3 operands)...
+	auto&& imul(this auto&& self, T value1, T value2); // this would be imul (3 operands)...
 	auto&& idiv(this auto&& self); // this would be idiv..
 	auto&& neg(this auto&& self); // this would be neg..
+	auto&& cmp(this auto&& self, T value); // this would be cmp..
+	auto&& test(this auto&& self, T value); // this would be test..
+	auto&& adc(this auto&& self, T value); // this would be adc..
+	auto&& sbb(this auto&& self, T value); // this would be sbb..
 };
-
 
 template<CPU_Width T> class Op_Mem;
 template<CPU_Width T> class Op_Imm;
@@ -50,6 +53,7 @@ template<typename T> concept Op_Type = Op_Normal_Type<T> || std::same_as<T, Op_R
 
 class CPU 
 {
+public:
 	enum class CPU_Group_Opcode_8X : uint8_t
 	{
 		ADD = 0x0,// Opcode group 80
@@ -393,7 +397,7 @@ class CPU
 		XOR_R8_RM8 = 0x32,
 		XOR_R16_RM16 = 0x33,
 	};
-public:
+
 	enum class Registers_8
 	{
 		// These are for accessing 8 bit registers
@@ -457,10 +461,8 @@ private:
 
 	bool _halted{};
 	bool _sti_enable{};
-	bool _zero_flag_check{};
 public:
 	Bus& _bus;
-
 	uint64_t ticks_total{};
 
 	CPU(PIC& pic, Bus& bus);
@@ -485,8 +487,7 @@ public:
 
 	uint16_t& get_reg(Registers reg);
 	uint8_t& get_reg(Registers_8 reg);
-
-	uint16_t& get_sreg(Segment_Registers reg);
+	uint16_t& get_reg(Segment_Registers reg);
 
 	void check_irq();
 
@@ -496,19 +497,21 @@ public:
 	template<Op_Normal_Type O> O fetch(uint16_t data_seg);
 };
 
-template<CPU_Width T> class Op_Mem : public Operand
+template<CPU_Width T> class Op_Mem : public Operand<T>
 {
-	int _addr;
+	uint16_t _segment;
+	uint16_t _offset;
 public:
 	CPU& _cpu;
-	Op_Mem(CPU& cpu, int addr) : _cpu{cpu}, _addr{addr} {}
+	Op_Mem(CPU& cpu, uint16_t segment, uint16_t offset) : _cpu{cpu}, _segment{segment}, _offset{offset} {}
 	operator T() { return get_val(); }
-	Op_Mem& operator=(T value) { _cpu._bus.write<T>(_addr, value, false); return *this; }
-	T get_val() { return _cpu._bus.read<T>(_addr, false); }
-	int get_op() const { return _addr; }
+	Op_Mem& operator=(T value) { _cpu._bus.write<T>(to_linear(_segment, _offset), value, false); return *this; }
+	T get_val() { return _cpu._bus.read<T>(to_linear(_segment, _offset), false); }
+	uint16_t get_op_offset() const { return _offset; }
+	uint16_t get_op_segment() const { return _segment; }
 };
 
-template<CPU_Width T> class Op_Imm : public Operand
+template<CPU_Width T> class Op_Imm : public Operand<T>
 {
 	T _imm;
 public:
@@ -519,7 +522,7 @@ public:
 	T get_val() const { return _imm; }
 };
 
-template<CPU_Width T> class Op_Reg : public Operand
+template<CPU_Width T> class Op_Reg : public Operand<T>
 {
 	T* _reg;
 public:
@@ -531,23 +534,24 @@ public:
 	T* get_op() const { return _reg; }
 };
 
-template<CPU_Width T> class Op_Regmem : public Operand
+template<CPU_Width T> class Op_Regmem : public Operand<T>
 {
-	std::variant<int, T*> _regmem;
+	std::variant<Op_Mem<T>, Op_Reg<T>> _regmem;
 public:
 	CPU& _cpu;
 	operator T() { return get_val(); }
-	Op_Regmem(CPU& cpu, std::variant<int, T*> regmem) : _cpu{cpu}, _regmem{regmem} {}
+	Op_Regmem(CPU& cpu, T* reg) : _cpu{cpu}, _regmem{Op_Reg<T>(cpu, reg)} {}
+	Op_Regmem(CPU& cpu, uint16_t segment, uint16_t offset) : _cpu{cpu}, _regmem{Op_Mem<T>(cpu, segment, offset)} {}
 	Op_Regmem& operator=(T value)
 	{
-		if (std::holds_alternative<T*>(_regmem))
+		if (std::holds_alternative<Op_Mem<T>>(_regmem))
 		{
-			*std::get<T*>(_regmem) = value;
+			std::get<Op_Mem<T>>(_regmem) = value;
 		}
 
 		else
 		{
-			_cpu._bus.write<T>(std::get<int>(_regmem), value, false);
+			std::get<Op_Reg<T>>(_regmem) = value;
 		}
 
 		return *this;
@@ -555,17 +559,18 @@ public:
 
 	T get_val()
 	{
-		if(std::holds_alternative<T*>(_regmem))
+		if (std::holds_alternative<Op_Mem<T>>(_regmem))
 		{
-			return *std::get<T*>(_regmem);
+			return std::get<Op_Mem<T>>(_regmem).get_val();
 		}
 
 		else
 		{
-			return _cpu._bus.read<T>(std::get<int>(_regmem), false);
+			return std::get<Op_Reg<T>>(_regmem).get_val();
 		}
 	}
-	std::variant<int, T*> get_op() const { return _regmem; }
+
+	std::variant<Op_Mem<T>, Op_Reg<T>> get_op() const { return _regmem; }
 };
 
 #include "operand.inl"

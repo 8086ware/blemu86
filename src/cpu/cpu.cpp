@@ -14,18 +14,18 @@ void CPU::reset()
 	std::println("[CPU] Reset to 0xffff:0");
 
 	get_reg(Registers::IP) = 0x0;
-	get_sreg(Segment_Registers::CS) = 0xffff;
+	get_reg(Segment_Registers::CS) = 0xffff;
 }
 
 void CPU::push(uint16_t value)
 {
 	get_reg(Registers::SP) -= 2;
-	_bus.write<uint16_t>(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), value, false);
+	_bus.write<uint16_t>(to_linear(get_reg(Segment_Registers::SS), get_reg(Registers::SP)), value, false);
 }
 
 uint16_t CPU::pop()
 {
-	uint16_t value{ _bus.read<uint16_t>(to_linear(get_sreg(Segment_Registers::SS), get_reg(Registers::SP)), false) };
+	uint16_t value{ _bus.read<uint16_t>(to_linear(get_reg(Segment_Registers::SS), get_reg(Registers::SP)), false) };
 	get_reg(Registers::SP) += 2;
 	return value;
 }
@@ -48,7 +48,7 @@ uint8_t& CPU::get_reg(Registers_8 reg)
 	}
 }
 
-uint16_t& CPU::get_sreg(Segment_Registers reg)
+uint16_t& CPU::get_reg(Segment_Registers reg)
 {
 	return _sregs[std::to_underlying(reg)].word;
 }
@@ -84,10 +84,10 @@ void CPU::check_irq()
 			if (interrupt_go)
 			{
 				push(get_reg(Registers::Flags));
-				push(get_sreg(Segment_Registers::CS));
+				push(get_reg(Segment_Registers::CS));
 				push(get_reg(Registers::IP));
 
-				get_sreg(Segment_Registers::CS) = _bus.read<uint16_t>(to_linear(0, vector_offset + 2), false);
+				get_reg(Segment_Registers::CS) = _bus.read<uint16_t>(to_linear(0, vector_offset + 2), false);
 				get_reg(Registers::IP) = _bus.read<uint16_t>(to_linear(0, vector_offset), false);
 
 				get_reg(Registers::Flags) &= ~flag_interrupt;

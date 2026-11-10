@@ -15,16 +15,19 @@ bool DMA::write(int address, uint8_t data, bool io)
 		{
 		case Port::Channel_1_high_order_8bits:
 		{
+			_channels[1].current_address |= ((uint32_t)data << 16);
 			_channels[1].base_address |= ((uint32_t)data << 16);
 			break;
 		}
 		case Port::Channel_2_high_order_8bits:
 		{
+			_channels[2].current_address |= ((uint32_t)data << 16);
 			_channels[2].base_address |= ((uint32_t)data << 16);
 			break;
 		}
 		case Port::Channel_3_high_order_8bits:
 		{
+			_channels[3].current_address |= ((uint32_t)data << 16);
 			_channels[3].base_address |= ((uint32_t)data << 16);
 			break;
 		}

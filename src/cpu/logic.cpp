@@ -4,8 +4,6 @@
 #include <utility>
 
 void CPU::logic() {
-	ticks_total++;
-
 	bool exec{ true };
 	bool dec_cx{};
 	bool reset_ip{};
@@ -18,7 +16,7 @@ void CPU::logic() {
 	}
 
 	uint16_t temp_ss{get_reg(Segment_Registers::SS)};
-
+	
 	if (!_halted) {
 		// TODO: Fetch prefixes here
 		bool default_seg{true};
@@ -151,55 +149,54 @@ void CPU::logic() {
 			uint8_t group_opcode{ static_cast<uint8_t>((_bus.read<uint8_t>(to_linear(get_reg(Segment_Registers::CS), get_reg(Registers::IP)), false) >> 3) & 0x7) };
 			auto regmem = fetch_modrm<uint16_t>(default_seg, data_seg).first;
 			auto imm = fetch<Op_Imm<uint16_t>>(data_seg);
-			{
-				switch (static_cast<CPU_Group_Opcode_8X>(group_opcode))
-				{
-					case CPU_Group_Opcode_8X::ADD:
-					{
-						regmem += imm;
-						break;
-					}
-					case CPU_Group_Opcode_8X::ADC:
-					{
-						regmem.adc(imm);
-						break;
-					}
-					case CPU_Group_Opcode_8X::SBB:
-					{
-						regmem.sbb(imm);
-						break;
-					}
-					case CPU_Group_Opcode_8X::AND:
-					{
-						regmem &= imm;
-						break;
-					}
-					case CPU_Group_Opcode_8X::CMP: // 83 mm ii
-					{
-						regmem.cmp(imm);
-						break;
-					}
-					case CPU_Group_Opcode_8X::SUB:
-					{
-						regmem -= imm;
-						break;
-					}
-					case CPU_Group_Opcode_8X::OR:
-					{
-						regmem |= imm;
-						break;
-					}
-					case CPU_Group_Opcode_8X::XOR:
-					{
-						regmem ^= imm;
-						break;
-					}
-					default:
-					{
-						std::println("[CPU] Unkown Opcode {:x} /{}", static_cast<uint8_t>(opcode), group_opcode);
 
-						break;
-					}
+			switch (static_cast<CPU_Group_Opcode_8X>(group_opcode))
+			{
+				case CPU_Group_Opcode_8X::ADD:
+				{
+					regmem += imm;
+					break;
+				}
+				case CPU_Group_Opcode_8X::ADC:
+				{
+					regmem.adc(imm);
+					break;
+				}
+				case CPU_Group_Opcode_8X::SBB:
+				{
+					regmem.sbb(imm);
+					break;
+				}
+				case CPU_Group_Opcode_8X::AND:
+				{
+					regmem &= imm;
+					break;
+				}
+				case CPU_Group_Opcode_8X::CMP: // 83 mm ii
+				{
+					regmem.cmp(imm);
+					break;
+				}
+				case CPU_Group_Opcode_8X::SUB:
+				{
+					regmem -= imm;
+					break;
+				}
+				case CPU_Group_Opcode_8X::OR:
+				{
+					regmem |= imm;
+					break;
+				}
+				case CPU_Group_Opcode_8X::XOR:
+				{
+					regmem ^= imm;
+					break;
+				}
+				default:
+				{
+					std::println("[CPU] Unkown Opcode {:x} /{}", static_cast<uint8_t>(opcode), group_opcode);
+
+					break;
 				}
 			}
 			break;
@@ -210,57 +207,56 @@ void CPU::logic() {
 			auto regmem = fetch_modrm<uint16_t>(default_seg, data_seg).first;
 			auto imm = fetch<Op_Imm<uint8_t>>(data_seg);
 
+			switch (static_cast<CPU_Group_Opcode_8X>(group_opcode))
 			{
-				switch (static_cast<CPU_Group_Opcode_8X>(group_opcode))
+				case CPU_Group_Opcode_8X::ADD:
 				{
-					case CPU_Group_Opcode_8X::ADD:
-					{
-						regmem += static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
-						break;
-					}
-					case CPU_Group_Opcode_8X::ADC:
-					{
-						regmem.adc(static_cast<int16_t>(static_cast<int8_t>(imm.get_val())));
-						break;
-					}
-					case CPU_Group_Opcode_8X::SBB:
-					{
-						regmem.sbb(static_cast<int16_t>(static_cast<int8_t>(imm.get_val())));
-						break;
-					}
-					case CPU_Group_Opcode_8X::AND:
-					{
-						regmem &= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
-						break;
-					}
-					case CPU_Group_Opcode_8X::CMP: // 83 mm ii
-					{
-						regmem.cmp(static_cast<int16_t>(static_cast<int8_t>(imm.get_val())));
-						break;
-					}
-					case CPU_Group_Opcode_8X::SUB:
-					{
-						regmem -= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
-						break;
-					}
-					case CPU_Group_Opcode_8X::OR:
-					{
-						regmem |= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
-						break;
-					}
-					case CPU_Group_Opcode_8X::XOR:
-					{
-						regmem ^= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
-						break;
-					}
-					default:
-					{
-						std::println("[CPU] Unkown Opcode {:x} /{}", static_cast<uint8_t>(opcode), group_opcode);
+					regmem += static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
+					break;
+				}
+				case CPU_Group_Opcode_8X::ADC:
+				{
+					regmem.adc(static_cast<int16_t>(static_cast<int8_t>(imm.get_val())));
+					break;
+				}
+				case CPU_Group_Opcode_8X::SBB:
+				{
+					regmem.sbb(static_cast<int16_t>(static_cast<int8_t>(imm.get_val())));
+					break;
+				}
+				case CPU_Group_Opcode_8X::AND:
+				{
+					regmem &= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
+					break;
+				}
+				case CPU_Group_Opcode_8X::CMP: // 83 mm ii
+				{
+					regmem.cmp(static_cast<int16_t>(static_cast<int8_t>(imm.get_val())));
+					break;
+				}
+				case CPU_Group_Opcode_8X::SUB:
+				{
+					regmem -= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
+					break;
+				}
+				case CPU_Group_Opcode_8X::OR:
+				{
+					regmem |= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
+					break;
+				}
+				case CPU_Group_Opcode_8X::XOR:
+				{
+					regmem ^= static_cast<int16_t>(static_cast<int8_t>(imm.get_val()));
+					break;
+				}
+				default:
+				{
+					std::println("[CPU] Unkown Opcode {:x} /{}", static_cast<uint8_t>(opcode), group_opcode);
 
-						break;
-					}
+					break;
 				}
 			}
+			
 			break;
 		}
 		case CPU_Opcode::GROUP_OPCODE_C0:
@@ -1283,7 +1279,7 @@ void CPU::logic() {
 		case CPU_Opcode::INT_IMM8: // CD ii
 		{
 			uint8_t interrupt{ fetch<Op_Imm<uint8_t>>(data_seg).get_val() };
-
+	
 			// Look up in interrupt vector table. Example: int 0x10, 0x10 * 4 = 0x40, get offset at 0x40 and segment at 0x42, jump there
 			uint16_t interrupt_offset{ _bus.read<uint16_t>(to_linear(0, interrupt * 4), false) };
 			uint16_t interrupt_segment{ _bus.read<uint16_t>(to_linear(0, interrupt * 4) + 2, false) };
@@ -1671,9 +1667,8 @@ void CPU::logic() {
 		case CPU_Opcode::MOV_DH_IMM8: 
 		case CPU_Opcode::MOV_BH_IMM8:
 		{
-			Op_Reg<uint8_t> reg{ *this, &get_reg(static_cast<Registers_8>(static_cast<uint8_t>(opcode) & 0x7)) };
 			auto imm = fetch<Op_Imm<uint8_t>>(data_seg);
-			reg = (imm);
+			get_reg(static_cast<Registers_8>(static_cast<uint8_t>(opcode) & 0x7)) = imm;
 			break;
 		}
 		case CPU_Opcode::MOV_AX_IMM16: 
@@ -1685,9 +1680,8 @@ void CPU::logic() {
 		case CPU_Opcode::MOV_SI_IMM16:
 		case CPU_Opcode::MOV_DI_IMM16:
 		{
-			Op_Reg<uint16_t> reg{ *this, &get_reg(static_cast<Registers>(static_cast<uint8_t>(opcode) & 0x7)) };
 			auto imm = fetch<Op_Imm<uint16_t>>(data_seg);
-			reg = (imm);
+			get_reg(static_cast<Registers>(static_cast<uint8_t>(opcode) & 0x7)) = imm;
 			break;
 		}
 		case CPU_Opcode::MOV_AL_MOFFS8: get_reg(Registers_8::AL) = fetch<Op_Mem<uint8_t>>(data_seg).get_val(); break;
@@ -1825,10 +1819,14 @@ void CPU::logic() {
 			push(get_reg(static_cast<Registers>(static_cast<uint8_t>(opcode) & 0x7)));
 			break;
 		}
-		case CPU_Opcode::PUSH_ES: push(get_reg(Segment_Registers::ES)); break;
-		case CPU_Opcode::PUSH_CS: push(get_reg(Segment_Registers::CS)); break;
-		case CPU_Opcode::PUSH_SS: push(get_reg(Segment_Registers::SS)); break;
-		case CPU_Opcode::PUSH_DS: push(get_reg(Segment_Registers::DS)); break;
+		case CPU_Opcode::PUSH_ES: 
+		case CPU_Opcode::PUSH_CS: 
+		case CPU_Opcode::PUSH_SS: 
+		case CPU_Opcode::PUSH_DS:
+		{
+			push(get_reg(static_cast<Segment_Registers>((std::to_underlying(opcode) >> 3) & 0x3)));
+			break;
+		}
 		case CPU_Opcode::PUSHF: push(get_reg(Registers::Flags)); break;
 		case CPU_Opcode::PUSH_IMM8: push(fetch<Op_Imm<uint8_t>>(data_seg).get_val()); break;
 		case CPU_Opcode::PUSH_IMM16: push(fetch<Op_Imm<uint16_t>>(data_seg).get_val()); break;
@@ -1851,7 +1849,7 @@ void CPU::logic() {
 		case CPU_Opcode::POP_RM16:
 		{
 			auto modrm = fetch_modrm<uint16_t>(default_seg, data_seg);
-			std::get<Op_Regmem<uint16_t>>(modrm) = (pop()); break;
+			std::get<Op_Regmem<uint16_t>>(modrm) = pop(); break;
 			break;
 		}
 		case CPU_Opcode::POP_AX:
@@ -1866,10 +1864,14 @@ void CPU::logic() {
 			get_reg(static_cast<Registers>(static_cast<uint8_t>(opcode) & 0x7)) = pop();
 			break;
 		}
-		case CPU_Opcode::POP_ES: get_reg(Segment_Registers::ES) = pop(); break;
-		case CPU_Opcode::POP_CS: get_reg(Segment_Registers::CS) = pop(); break;
-		case CPU_Opcode::POP_SS: get_reg(Segment_Registers::SS) = pop(); break;
-		case CPU_Opcode::POP_DS: get_reg(Segment_Registers::DS) = pop(); break;
+		case CPU_Opcode::POP_ES: 
+		case CPU_Opcode::POP_CS: 
+		case CPU_Opcode::POP_SS: 
+		case CPU_Opcode::POP_DS: 
+		{
+			get_reg(static_cast<Segment_Registers>((std::to_underlying(opcode) >> 3) & 0x3)) = pop();
+			break;
+		}
 		case CPU_Opcode::POPF: get_reg(Registers::Flags) = pop(); break;
 		case CPU_Opcode::RET_FAR:
 		{
@@ -1985,21 +1987,9 @@ void CPU::logic() {
 
 			break;
 		}
-		case CPU_Opcode::STC:
-		{
-			get_reg(Registers::Flags) |= flag_carry;
-			break;
-		}
-		case CPU_Opcode::STD:
-		{
-			get_reg(Registers::Flags) |= flag_direction;
-			break;
-		}
-		case CPU_Opcode::STI:
-		{
-			_sti_enable = true;
-			break;
-		}
+		case CPU_Opcode::STC: get_reg(Registers::Flags) |= flag_carry;	break;
+		case CPU_Opcode::STD: get_reg(Registers::Flags) |= flag_direction; break;
+		case CPU_Opcode::STI: _sti_enable = true; break;
 		case CPU_Opcode::STOSB:
 		{
 			if (exec)

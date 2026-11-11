@@ -73,6 +73,7 @@ bool FDD::seek(int cylinder, int head, int sector)
 bool FDD::write(std::span<uint8_t> data)
 {
 	_file.write(reinterpret_cast<char*>(data.data()), data.size());
+	_file.seekg(_file.tellp(), std::ios_base::beg);
 	return _file.bad() || _file.eof();
 }
 
@@ -80,6 +81,7 @@ bool FDD::read(std::span<uint8_t> data)
 {
 	std::println("[FDD] Read {} bytes, or {} sectors at C:{}, H:{}, S:{}", data.size(), data.size() / _sector_size, cylinder(), head(), sector());
 	_file.read(reinterpret_cast<char*>(data.data()), data.size());
+	_file.seekp(_file.tellg(), std::ios_base::beg);
 	return _file.bad() || _file.eof();
 }
 

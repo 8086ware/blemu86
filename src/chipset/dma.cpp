@@ -224,6 +224,8 @@ void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 {
 	uint8_t* temp{ data.data() };
 
+	auto temp_current_address{_channels[channel].current_address};
+
 	while(_channels[channel].current_word != 0xffff)
 	{
 		_bus.write<uint8_t>(_channels[channel].current_address, *temp, false);
@@ -231,12 +233,14 @@ void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 
 		if (_channels[channel].mode & DMA::mode_flag_decrement_select)
 		{
-			_channels[channel].current_address--;
+			_channels[channel].current_address = ((_channels[channel].current_address & 0xffff) - 1);
+			_channels[channel].current_address |= (temp_current_address & 0xff0000);
 		}
 
 		else
 		{
-			_channels[channel].current_address++;
+			_channels[channel].current_address = ((_channels[channel].current_address & 0xffff) + 1);
+			_channels[channel].current_address |= (temp_current_address & 0xff0000);
 		}
 
 		_channels[channel].current_word--;

@@ -463,7 +463,6 @@ private:
 	bool _sti_enable{};
 public:
 	Bus& _bus;
-	uint64_t ticks_total{};
 
 	CPU(PIC& pic, Bus& bus);
 

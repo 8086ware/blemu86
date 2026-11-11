@@ -3,25 +3,22 @@
 
 bool Blemu86::loop()
 {
-	double cpu_ns_per_tick{ (1 / static_cast<double>(_cpu.get_hz())) * 1'000'000'000 };
-	size_t time_now{ static_cast<size_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count()) };
+	const auto sync_start = SDL_GetTicksNS();
 
-	for (int i{}; i < (time_now - _cpu.get_last_tick()) / cpu_ns_per_tick; i++)
+	for(int i{}; i < _clocked_devices.size(); i++)
 	{
-		_cpu.logic();
-
-		for (size_t k{}; k < _clocked_devices.size(); k++)
+		for(int k{}; k < _clocked_devices[i].second / sync_hz; k++)
 		{
-			double device_ns_per_tick{ (1 / _clocked_devices[k].second * 1'000'000'000) };
-
-			if (_cpu.ticks_total % (size_t)(device_ns_per_tick / cpu_ns_per_tick) == 0) // Sync time for things slower than CPU
-			{
-				_clocked_devices[k].first->cycle();
-			}
+			_clocked_devices[i].first->cycle();
 		}
 	}
 
-	_cpu.set_last_tick(time_now);
+	for(int i{}; i < _cpu.get_hz() / sync_hz; i++)
+	{
+		_cpu.logic();
+	}
+
+	while(SDL_GetTicksNS() - sync_start <= (1/sync_hz) * 1'000'000'000);
 
 	return true;
 }

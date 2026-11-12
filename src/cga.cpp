@@ -20,35 +20,18 @@ bool CGA::write(int address, uint8_t data, bool io)
 		{
 			_mode_ctrl_reg = data;
 
-			if (_mode_ctrl_reg & mode_ctrl_high_res_graphics)
-            {
-                SDL_Surface* old{ _surface };
-                _surface = SDL_ScaleSurface(_surface, 640, 200, SDL_SCALEMODE_NEAREST);
-                SDL_DestroySurface(old);
-			}
-
-			else if (_mode_ctrl_reg & mode_ctrl_graphics)
+			if (_mode_ctrl_reg & mode_ctrl_high_res_graphics || _mode_ctrl_reg & mode_ctrl_high_res)
 			{
-                SDL_Surface* old{ _surface };
-                _surface = SDL_ScaleSurface(_surface, 320, 200, SDL_SCALEMODE_NEAREST);
-                SDL_DestroySurface(old);
-            }
+				SDL_Surface* old{ _surface };
+				_surface = SDL_ScaleSurface(_surface, 640, 200, SDL_SCALEMODE_NEAREST);
+				SDL_DestroySurface(old);
+			}
 
 			else
 			{
-				if (_mode_ctrl_reg & mode_ctrl_high_res)
-				{
-                    SDL_Surface* old{ _surface };
-                    _surface = SDL_ScaleSurface(_surface, 640, 200, SDL_SCALEMODE_NEAREST);
-                    SDL_DestroySurface(old);
-                }
-
-				else
-				{
-                    SDL_Surface* old{ _surface };
-                    _surface = SDL_ScaleSurface(_surface, 320, 200, SDL_SCALEMODE_NEAREST);
-                    SDL_DestroySurface(old);
-                }
+				SDL_Surface* old{ _surface };
+				_surface = SDL_ScaleSurface(_surface, 320, 200, SDL_SCALEMODE_NEAREST);
+				SDL_DestroySurface(old);
 			}
 
 			break;

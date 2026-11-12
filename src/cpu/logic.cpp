@@ -1103,14 +1103,17 @@ void CPU::logic() {
 		case CPU_Opcode::DAA:
 		{
 			uint8_t old_al{ get_reg(Registers_8::AL) };
-			uint16_t old_cf{ static_cast<uint16_t>(get_reg(Registers::Flags) & flag_carry) };
+			bool old_cf{ static_cast<bool>(get_reg(Registers::Flags) & flag_carry) };
 			get_reg(Registers::Flags) &= ~flag_carry;
 	
 			if(((get_reg(Registers_8::AL) & 0xf) > 9) || get_reg(Registers::Flags) & flag_half_carry)
 			{
-				Op_Reg<uint8_t> temp_al{*this, &get_reg(Registers_8::AL)};
-				temp_al += static_cast<uint8_t>(6);
-				get_reg(Registers::Flags) |= old_cf;
+				get_reg(Registers_8::AL) += 6;
+				modify_flag_carry(old_al, get_reg(Registers_8::AL), true);
+				if(old_cf || get_reg(Registers::Flags) & flag_carry)
+				{
+					get_reg(Registers::Flags) |= flag_carry;
+				}
 				get_reg(Registers::Flags) |= flag_half_carry;
 			}
 			else

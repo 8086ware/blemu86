@@ -13,6 +13,10 @@ bool DMA::write(int address, uint8_t data, bool io)
 	{
 		switch (static_cast<Port>(address))
 		{
+		case Port::Status_command:
+		{
+			break;
+		}
 		case Port::Channel_1_high_order_8bits:
 		{
 			_channels[1].base_address &= ~0xff0000;
@@ -251,6 +255,8 @@ void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 
 		_channels[channel].current_word--;
 	} // Terminal count/EOP
+
+	std::println("[DMA] Operation from {:x} to {:x} wrote {:x} bytes", temp_current_address, _channels[channel].current_address, _channels[channel].current_address - temp_current_address);
 
 	if (_channels[channel].mode & DMA::mode_flag_autoinitialization)
 	{

@@ -215,7 +215,7 @@ void Keyboard::cycle()
                 _scancodes.push_back(0x29);
                 break;
             }
-            case SDL_SCANCODE_KP_MINUS:
+            case SDL_SCANCODE_MINUS:
             {
                 _scancodes.push_back(0x0C);
                 break;

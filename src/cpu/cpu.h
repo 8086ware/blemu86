@@ -482,7 +482,7 @@ public:
 	void modify_flag_half_carry(uint8_t old_val, uint8_t new_val);
 	template<CPU_Width T> void modify_flag_zero(T val);
 	template<CPU_Width T> void modify_flag_sign(T val);
-	template<CPU_Width T> void modify_flag_overflow(T op1, T op2, T result);
+	template<CPU_Width T> void modify_flag_overflow(T op1, T op2, T result, bool added);
 
 	uint16_t& get_reg(Registers reg);
 	uint8_t& get_reg(Registers_8 reg);

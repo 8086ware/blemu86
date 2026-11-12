@@ -29,7 +29,7 @@ template<CPU_Width T> void CPU::modify_flag_sign(T val)
 }
 
 // assume subtraction (like cmp) between op1 and op2, for addition change the operands as needed
-template<CPU_Width T> void CPU::modify_flag_overflow(T op1, T op2, T result)
+template<CPU_Width T> void CPU::modify_flag_overflow(T op1, T op2, T result, bool added)
 {
 	bool op1_neg{};
 	bool op2_neg{};
@@ -42,19 +42,40 @@ template<CPU_Width T> void CPU::modify_flag_overflow(T op1, T op2, T result)
 	// -127 - 127 = 2
 	// op1_neg - op2_neg
 
-	if (op1_neg && !op2_neg && !result_neg)
+	if(!added)
 	{
-		get_reg(Registers::Flags) |= flag_overflow;
-	}
+		if (op1_neg && !op2_neg && !result_neg)
+		{
+			get_reg(Registers::Flags) |= flag_overflow;
+		}
 
-	else if (!op1_neg && op2_neg && result_neg)
-	{
-		get_reg(Registers::Flags) |= flag_overflow;
-	}
+		else if (!op1_neg && op2_neg && result_neg)
+		{
+			get_reg(Registers::Flags) |= flag_overflow;
+		}
 
+		else
+		{
+			get_reg(Registers::Flags) &= ~flag_overflow;
+		}
+	}
+	
 	else
 	{
-		get_reg(Registers::Flags) &= ~flag_overflow;
+		if (op1_neg && op2_neg && !result_neg)
+		{
+			get_reg(Registers::Flags) |= flag_overflow;
+		}
+
+		else if (!op1_neg && !op2_neg && result_neg)
+		{
+			get_reg(Registers::Flags) |= flag_overflow;
+		}
+
+		else
+		{
+			get_reg(Registers::Flags) &= ~flag_overflow;
+		}
 	}
 }
 

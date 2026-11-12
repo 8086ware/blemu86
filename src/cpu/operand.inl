@@ -372,7 +372,7 @@ template<CPU_Width T> auto&& Operand<T>::imul(this auto&& self)
 {
 	if constexpr(std::is_same_v<T, uint16_t>)
 	{
-		int32_t product{ static_cast<int16_t>(self._cpu.get_reg(CPU::Registers::AX)) * static_cast<int16_t>(self.get_val()) };
+		int32_t product{ static_cast<int32_t>(static_cast<int16_t>(self._cpu.get_reg(CPU::Registers::AX)) * static_cast<int16_t>(self.get_val())) };
 
 		self._cpu.get_reg(CPU::Registers::DX) = static_cast<int16_t>(product >> 16);
 		self._cpu.get_reg(CPU::Registers::AX) = static_cast<int16_t>(product & 0x0000ffff);
@@ -390,7 +390,7 @@ template<CPU_Width T> auto&& Operand<T>::imul(this auto&& self)
 
 	else if constexpr(std::is_same_v<T, uint8_t>)
 	{
-		self._cpu.get_reg(CPU::Registers::AX) = static_cast<int8_t>(self._cpu.get_reg(CPU::Registers_8::AL)) * static_cast<int8_t>(self.get_val());
+		self._cpu.get_reg(CPU::Registers::AX) = static_cast<int16_t>(static_cast<int8_t>(self._cpu.get_reg(CPU::Registers_8::AL)) * static_cast<int8_t>(self.get_val()));
 
 		if (self._cpu.get_reg(CPU::Registers_8::AH) == 0 || self._cpu.get_reg(CPU::Registers_8::AH) == 0xff)
 		{

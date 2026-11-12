@@ -454,7 +454,7 @@ template<CPU_Width T> auto&& Operand<T>::adc(this auto&& self, T value)
 	T carry{static_cast<T>(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry)};
 	self += (value + carry);
 
-	if(static_cast<T>(value + carry) == 0)
+	if(static_cast<T>(value + carry) == 0 && value == 0xff)
 	{
 		self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
 	}
@@ -467,5 +467,9 @@ template<CPU_Width T> auto&& Operand<T>::sbb(this auto&& self, T value)
 	T carry{static_cast<T>(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry)};
 	self -= (value + carry);
 
+	if(static_cast<T>(value + carry) == 0 && value == 0xff)
+	{
+		self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+	}
 	return self;
 }

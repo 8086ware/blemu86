@@ -27,15 +27,31 @@ void CPU::modify_flag_parity(uint8_t val)
 
 // Sees if there is a new bit set in the 4th bit of a value (lsb on 16 bit values, so it works)
 
-void CPU::modify_flag_half_carry(uint8_t old_val, uint8_t new_val)
+void CPU::modify_flag_half_carry(uint8_t old_val, uint8_t new_val, bool added)
 {
-	if (old_val < 0x10 && new_val >= 0x10)
+	if(added)
 	{
-		get_reg(Registers::Flags) |= flag_half_carry;
+		if (((old_val & 0x0f) + (new_val & 0x0f))> 0x0f)
+		{
+			get_reg(Registers::Flags) |= flag_half_carry;
+		}
+
+		else
+		{
+			get_reg(Registers::Flags) &= ~flag_half_carry;
+		}
 	}
 
 	else
 	{
-		get_reg(Registers::Flags) &= ~flag_half_carry;
+		if (((old_val & 0x0f) < (new_val & 0x0f)))
+		{
+			get_reg(Registers::Flags) |= flag_half_carry;
+		}
+
+		else
+		{
+			get_reg(Registers::Flags) &= ~flag_half_carry;
+		}
 	}
 }

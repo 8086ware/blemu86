@@ -479,7 +479,7 @@ public:
 
 	template<CPU_Width T> void modify_flag_carry(T old_val, T val, bool added);
 	void modify_flag_parity(uint8_t val);
-	void modify_flag_half_carry(uint8_t old_val, uint8_t new_val);
+	void modify_flag_half_carry(uint8_t old_val, uint8_t new_val, bool added);
 	template<CPU_Width T> void modify_flag_zero(T val);
 	template<CPU_Width T> void modify_flag_sign(T val);
 	template<CPU_Width T> void modify_flag_overflow(T op1, T op2, T result, bool added);

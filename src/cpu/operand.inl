@@ -8,7 +8,7 @@ template<CPU_Width T> auto&& Operand<T>::operator++(this auto&& self, int val)
 	self = (self.get_val() + 1);
 
 	self._cpu.modify_flag_overflow(old, static_cast<T>(1), self.get_val(), true);
-	self._cpu.modify_flag_half_carry(static_cast<uint8_t>(old), self.get_val());
+	self._cpu.modify_flag_half_carry(static_cast<uint8_t>(old), self.get_val(), true);
 	self._cpu.modify_flag_zero(self.get_val());
 	self._cpu.modify_flag_parity(self.get_val());
 	self._cpu.modify_flag_sign(self.get_val());
@@ -23,7 +23,7 @@ template<CPU_Width T> auto&& Operand<T>::operator--(this auto&& self, int val)
 	self = (self.get_val() - 1);
 
 	self._cpu.modify_flag_overflow(old, static_cast<T>(1), self.get_val(), false);
-	self._cpu.modify_flag_half_carry(old, self.get_val());
+	self._cpu.modify_flag_half_carry(old, self.get_val(), false);
 	self._cpu.modify_flag_zero(self.get_val());
 	self._cpu.modify_flag_parity(self.get_val());
 	self._cpu.modify_flag_sign(self.get_val());
@@ -39,7 +39,7 @@ template<CPU_Width T> auto&& Operand<T>::operator+=(this auto&& self, T value)
 
 	self._cpu.modify_flag_carry(old, self.get_val(), true);
 	self._cpu.modify_flag_overflow(old, static_cast<T>(-value), self.get_val(), true);
-	self._cpu.modify_flag_half_carry(old, self.get_val());
+	self._cpu.modify_flag_half_carry(old, self.get_val(), true);
 	self._cpu.modify_flag_zero(self.get_val());
 	self._cpu.modify_flag_parity(self.get_val());
 	self._cpu.modify_flag_sign(self.get_val());
@@ -55,7 +55,7 @@ template<CPU_Width T> auto&& Operand<T>::operator-=(this auto&& self, T value)
 
 	self._cpu.modify_flag_carry(old, self.get_val(), false);
 	self._cpu.modify_flag_overflow(old, static_cast<T>(value), self.get_val(), false);
-	self._cpu.modify_flag_half_carry(static_cast<uint8_t>(old), self.get_val());
+	self._cpu.modify_flag_half_carry(static_cast<uint8_t>(old), self.get_val(), false);
 	self._cpu.modify_flag_zero(self.get_val());
 	self._cpu.modify_flag_parity(self.get_val());
 	self._cpu.modify_flag_sign(self.get_val());

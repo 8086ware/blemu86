@@ -581,9 +581,7 @@ void CPU::logic() {
 				case CPU_Group_Opcode_F6_F7::TEST:
 				{
 					auto imm = fetch<Op_Imm<uint8_t>>(data_seg);
-					uint8_t temp_var{ regmem.get_val() };
-					regmem &= imm;
-					regmem = (temp_var);
+					regmem.test(imm);
 					break;
 				}
 				case CPU_Group_Opcode_F6_F7::MUL: // F6 mm
@@ -635,9 +633,7 @@ void CPU::logic() {
 				case CPU_Group_Opcode_F6_F7::TEST:
 				{
 					auto imm = fetch<Op_Imm<uint16_t>>(data_seg);
-					uint16_t temp_var{ regmem.get_val() };
-					regmem &= imm;
-					regmem = (temp_var);
+					regmem.test(imm);
 					break;
 				}
 				case CPU_Group_Opcode_F6_F7::MUL: // F7 mm

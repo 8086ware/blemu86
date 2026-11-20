@@ -230,7 +230,7 @@ std::optional<uint8_t> DMA::read(int address, bool io)
 	return std::nullopt;
 }
 
-void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
+void DMA::operation(int channel, std::span<uint8_t> data)
 {
 	uint8_t* temp{ data.data() };
 
@@ -238,9 +238,18 @@ void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 
 	while(_channels[channel].current_word != 0xffff)
 	{
-		_bus.write<uint8_t>(_channels[channel].current_address, *temp, false);
-		temp++;
+		if((_channels[channel].mode & mode_flag_transfer_mode) >> 2 == 0x1)
+		{
+			_bus.write<uint8_t>(_channels[channel].current_address, *temp, false);
+		}
 
+		else if((_channels[channel].mode & mode_flag_transfer_mode) >> 2 == 0x2)
+		{
+			*temp = _bus.read<uint8_t>(_channels[channel].current_address, false);
+		}
+
+		temp++;
+		
 		if (_channels[channel].mode & DMA::mode_flag_decrement_select)
 		{
 			_channels[channel].current_address = ((_channels[channel].current_address & 0xffff) - 1);
@@ -256,7 +265,7 @@ void DMA::operation(int channel, std::span<uint8_t> data) // A dreq...
 		_channels[channel].current_word--;
 	} // Terminal count/EOP
 
-	std::println("[DMA] Operation from {:x} to {:x} wrote {:x} bytes", temp_current_address, _channels[channel].current_address, _channels[channel].current_address - temp_current_address);
+	std::println("[DMA] Operation from {:x} to {:x} did {:x} bytes", temp_current_address, _channels[channel].current_address, _channels[channel].current_address - temp_current_address);
 
 	if (_channels[channel].mode & DMA::mode_flag_autoinitialization)
 	{

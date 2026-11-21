@@ -31,7 +31,7 @@ void CPU::modify_flag_half_carry(uint8_t old_val, uint8_t new_val, bool added)
 {
 	if(added)
 	{
-		if (((old_val & 0x0f) + (new_val & 0x0f))> 0x0f)
+		if (((old_val & 0x0f) > (new_val & 0x0f)))
 		{
 			get_reg(Registers::Flags) |= flag_half_carry;
 		}

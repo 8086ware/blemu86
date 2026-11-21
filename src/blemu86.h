@@ -13,6 +13,7 @@
 #include "device.h"
 #include <cstdint>
 #include <SDL3/SDL.h>
+#include <thread>
 
 class Blemu86 // The emulator... Or physically the motherboard lol
 {
@@ -23,11 +24,14 @@ public:
 	bool loop();
 	~Blemu86();
 private:
+	bool running{true};
 	float sync_hz{ 200 };
 	std::vector<std::pair<Clock_Device*, double>> _clocked_devices{}; // Devices to cycle through (e.g: PIT) and the HZ
 	std::unique_ptr<uint8_t[]> _ram{ std::make_unique<uint8_t[]>(ram_size) };
 	SDL_Window* _win{SDL_CreateWindow("Blemu86", 800, 600, SDL_WINDOW_RESIZABLE)};
 	SDL_Renderer* _win_render{SDL_CreateRenderer(_win, NULL)};
+	static void debug_prompt(Blemu86& emu);
+	std::thread debug_prompt_thread{debug_prompt, std::ref(*this)};
 	Bus _bus{ {_ram.get(), ram_size} };
 	CGA _cga{_win_render};
 	PIC _pic{};

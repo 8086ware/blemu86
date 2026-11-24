@@ -8,6 +8,7 @@
 #include "chipset/bus.h"
 #include "cpu_concepts.h"
 #include "to_linear.h"
+#include <bitset>
 
 // emulates 186 feature 16 bit cpu
 
@@ -422,7 +423,6 @@ public:
 		SI,
 		DI,
 		IP,
-		Flags,
 		Count,
 	};
 
@@ -435,16 +435,18 @@ public:
 		Count
 	};
 
-	static constexpr uint16_t flag_carry{ 0x1 };
-	static constexpr uint16_t flag_parity{ 0x4 };
-	static constexpr uint16_t flag_half_carry{ 0x10 };
-	static constexpr uint16_t flag_zero{ 0x40 };
-	static constexpr uint16_t flag_sign{ 0x80 };
-	static constexpr uint16_t flag_trap{ 0x100 };
-	static constexpr uint16_t flag_interrupt{ 0x200 };
-	static constexpr uint16_t flag_direction{ 0x400 };
-	static constexpr uint16_t flag_overflow{ 0x800 };
+	static constexpr uint16_t flag_carry{ 0 };
+	static constexpr uint16_t flag_parity{ 2 };
+	static constexpr uint16_t flag_half_carry{ 4 };
+	static constexpr uint16_t flag_zero{ 6 };
+	static constexpr uint16_t flag_sign{ 7 };
+	static constexpr uint16_t flag_trap{ 8 };
+	static constexpr uint16_t flag_interrupt{ 9 };
+	static constexpr uint16_t flag_direction{ 10 };
+	static constexpr uint16_t flag_overflow{ 11 };
 private:
+	std::bitset<16> _flags{};
+
 	union Register
 	{
 		uint8_t byte[2];
@@ -468,7 +470,9 @@ public:
 
 	size_t get_hz() const { return _hz; }
 	void set_hz(size_t hz) { _hz = hz; }
-
+	
+	std::bitset<16>& get_flags() { return _flags; }
+	
 	size_t get_last_tick() const { return _last_tick; }
 	void set_last_tick(size_t last_tick) { _last_tick = last_tick; }
 
@@ -476,13 +480,6 @@ public:
 
 	void push(uint16_t value);
 	uint16_t pop();
-
-	template<CPU_Width T> void modify_flag_carry(T old_val, T val, bool added);
-	void modify_flag_parity(uint8_t val);
-	void modify_flag_half_carry(uint8_t old_val, uint8_t new_val, bool added);
-	template<CPU_Width T> void modify_flag_zero(T val);
-	template<CPU_Width T> void modify_flag_sign(T val);
-	template<CPU_Width T> void modify_flag_overflow(T op1, T op2, T result, bool added);
 
 	uint16_t& get_reg(Registers reg);
 	uint8_t& get_reg(Registers_8 reg);
@@ -574,4 +571,3 @@ public:
 
 #include "operand.inl"
 #include "fetch.inl"
-#include "flags.inl"

@@ -2,6 +2,7 @@
 #include <print>
 #include "to_linear.h"
 #include <utility>
+#include <bit>
 
 void CPU::logic() {
 	bool exec{ true };
@@ -11,12 +12,12 @@ void CPU::logic() {
 
 	if (_sti_enable)
 	{
-		get_reg(Registers::Flags) |= flag_interrupt;
+		get_flags().set(flag_interrupt, true);
 		_sti_enable = false;
 	}
 
 	uint16_t temp_ss{get_reg(Segment_Registers::SS)};
-	
+
 	if (!_halted) {
 		// TODO: Fetch prefixes here
 		bool default_seg{true};
@@ -79,10 +80,13 @@ void CPU::logic() {
 		}
 		}
 
+		get_flags().set(1, true);
+		get_flags().set(3, false);
+		get_flags().set(5, false);
 		CPU_Opcode opcode{ static_cast<CPU_Opcode>(_bus.read<uint8_t>(to_linear(get_reg(Segment_Registers::CS), get_reg(Registers::IP)), false)) };
-
+	
 		get_reg(Registers::IP)++;
-
+		
 		switch (opcode) // actual opcode
 		{
 		case static_cast<CPU_Opcode>(0x82):
@@ -601,7 +605,7 @@ void CPU::logic() {
 				}
 				case CPU_Group_Opcode_F6_F7::NOT:
 				{
-					regmem = (static_cast<uint8_t>(~regmem.get_val()));
+					regmem = ~regmem.get_val();
 					break;
 				}
 				case CPU_Group_Opcode_F6_F7::DIV:
@@ -653,7 +657,7 @@ void CPU::logic() {
 				}
 				case CPU_Group_Opcode_F6_F7::NOT:
 				{
-					regmem = (static_cast<uint16_t>(~regmem.get_val()));
+					regmem = ~regmem.get_val();
 					break;
 				}
 				case CPU_Group_Opcode_F6_F7::DIV:
@@ -766,16 +770,17 @@ void CPU::logic() {
 		}
 		case CPU_Opcode::AAA:
 		{
-			if (((get_reg(Registers_8::AL) & 0xf) > 9) || get_reg(Registers::Flags) & flag_half_carry)
+			if (((get_reg(Registers_8::AL) & 0xf) > 9) || get_flags().test(flag_half_carry))
 			{
 				get_reg(Registers::AX) += 0x106;
-				get_reg(Registers::Flags) |= flag_half_carry | flag_carry;
+				get_flags().set(flag_carry, true);
+				get_flags().set(flag_half_carry, true);
 			}
 
 			else
 			{
-				get_reg(Registers::Flags) &= ~flag_half_carry;
-				get_reg(Registers::Flags) &= ~flag_carry;
+				get_flags().set(flag_carry, false);
+				get_flags().set(flag_half_carry, false);
 			}
 
 			get_reg(Registers_8::AL) &= 0x0f;
@@ -792,9 +797,9 @@ void CPU::logic() {
 			get_reg(Registers_8::AL) = (tempal + (tempah * imm)) & 0xff;
 			get_reg(Registers_8::AH) = 0;
 
-			modify_flag_sign(get_reg(Registers_8::AL));
-			modify_flag_zero(get_reg(Registers_8::AL));
-			modify_flag_parity(get_reg(Registers_8::AL));
+			get_flags().set(CPU::flag_zero, get_reg(Registers_8::AL) == 0);
+			get_flags().set(CPU::flag_parity, std::popcount(get_reg(Registers_8::AL)) % 2 == 0);
+			get_flags().set(CPU::flag_sign, get_reg(Registers_8::AL) & 0x80);
 			break;
 		}
 		case CPU_Opcode::AAM:
@@ -806,26 +811,26 @@ void CPU::logic() {
 			get_reg(Registers_8::AH) = temp / imm;
 			get_reg(Registers_8::AL) = temp % imm;
 
-			modify_flag_sign(get_reg(Registers_8::AL));
-			modify_flag_zero(get_reg(Registers_8::AL));
-			modify_flag_parity(get_reg(Registers_8::AL));
+			get_flags().set(CPU::flag_zero, get_reg(Registers_8::AL) == 0);
+			get_flags().set(CPU::flag_parity, std::popcount(get_reg(Registers_8::AL)) % 2 == 0);
+			get_flags().set(CPU::flag_sign, get_reg(Registers_8::AL) & 0x80);
 			break;
 		}
 		case CPU_Opcode::AAS:
 		{
-			if ((get_reg(Registers_8::AL) & 0xf) > 9 || get_reg(Registers::Flags) & flag_half_carry)
+			if ((get_reg(Registers_8::AL) & 0xf) > 9 || get_flags().test(flag_half_carry))
 			{
 				get_reg(Registers::AX) -= 6;
 				get_reg(Registers_8::AH)--;
-				get_reg(Registers::Flags) |= flag_half_carry;
-				get_reg(Registers::Flags) |= flag_carry;
+				get_flags().set(CPU::flag_half_carry, true);
+				get_flags().set(CPU::flag_carry, true);
 				get_reg(Registers_8::AL) &= 0xf;
 			}
 
 			else
 			{
-				get_reg(Registers::Flags) &= ~flag_half_carry;
-				get_reg(Registers::Flags) &= ~flag_carry;
+				get_flags().set(CPU::flag_half_carry, false);
+				get_flags().set(CPU::flag_carry, false);
 				get_reg(Registers_8::AL) &= 0xf;
 			}
 			break;
@@ -973,30 +978,22 @@ void CPU::logic() {
 		}
 		case CPU_Opcode::CLC:
 		{
-			get_reg(Registers::Flags) &= ~flag_carry;
+			get_flags().set(flag_carry, false);
 			break;
 		}
 		case CPU_Opcode::CLD:
 		{
-			get_reg(Registers::Flags) &= ~flag_direction;
+			get_flags().set(flag_direction, false);
 			break;
 		}
 		case CPU_Opcode::CLI:
 		{
-			get_reg(Registers::Flags) &= ~flag_interrupt;
+			get_flags().set(flag_interrupt, false);
 			break;
 		}
 		case CPU_Opcode::CMC:
 		{
-			if (get_reg(Registers::Flags) & flag_carry)
-			{
-				get_reg(Registers::Flags) &= ~flag_carry;
-			}
-
-			else
-			{
-				get_reg(Registers::Flags) |= flag_carry;
-			}
+			get_flags().flip(flag_carry);
 			break;
 		}
 		case CPU_Opcode::CMP_AL_IMM8: // 3C ii
@@ -1044,7 +1041,7 @@ void CPU::logic() {
 				Op_Mem<uint8_t> temp{*this, data_seg, get_reg(Registers::SI)};
 				temp.cmp(_bus.read<uint8_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), false));
 		
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI)--;
 					get_reg(Registers::DI)--;
@@ -1067,7 +1064,7 @@ void CPU::logic() {
 				Op_Mem<uint16_t> temp{*this, data_seg, get_reg(Registers::SI)};
 				temp.cmp(_bus.read<uint16_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), false));
 		
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI) -= 2;
 					get_reg(Registers::DI) -= 2;
@@ -1099,67 +1096,58 @@ void CPU::logic() {
 		case CPU_Opcode::DAA:
 		{
 			uint8_t old_al{ get_reg(Registers_8::AL) };
-			bool old_cf{ static_cast<bool>(get_reg(Registers::Flags) & flag_carry) };
-			get_reg(Registers::Flags) &= ~flag_carry;
+			bool old_cf{ get_flags().test(flag_carry) };
+			get_flags().set(flag_carry, false);
 	
-			if(((get_reg(Registers_8::AL) & 0xf) > 9) || get_reg(Registers::Flags) & flag_half_carry)
+			if(((get_reg(Registers_8::AL) & 0xf) > 9) || get_flags().test(flag_half_carry))
 			{
 				get_reg(Registers_8::AL) += 6;
-				modify_flag_carry(old_al, get_reg(Registers_8::AL), true);
-				if(old_cf || get_reg(Registers::Flags) & flag_carry)
+				get_flags().set(flag_carry, old_al > get_reg(Registers_8::AL));
+				if(old_cf || get_flags().test(flag_carry))
 				{
-					get_reg(Registers::Flags) |= flag_carry;
+					get_flags().set(flag_carry, true);
 				}
-				get_reg(Registers::Flags) |= flag_half_carry;
+				get_flags().set(flag_half_carry, true);
 			}
 			else
 			{
-				get_reg(Registers::Flags) &= ~flag_half_carry;
+				get_flags().set(flag_half_carry, false);
 			}
 			if ((old_al > 0x99) || (old_cf == true))
 			{
 				get_reg(Registers_8::AL) += 0x60;
-				get_reg(Registers::Flags) |= flag_carry;
+				get_flags().set(flag_carry, true);
 			}
 			else
 			{
-				get_reg(Registers::Flags) &= ~flag_carry;
+				get_flags().set(flag_carry, false);
 			}
 			break;
 		}
 		case CPU_Opcode::DAS:
 		{
 			uint8_t old_al{ get_reg(Registers_8::AL) };
-			bool old_cf{ static_cast<bool>(get_reg(Registers::Flags) & flag_carry) };
+			bool old_cf{ get_flags().test(flag_carry) };
 	
-			get_reg(Registers::Flags) &= ~flag_carry;
+			get_flags().set(flag_carry, false);
 	
-			if ((get_reg(Registers_8::AL) & 0xf) > 9 || get_reg(Registers::Flags) & flag_half_carry)
+			if ((get_reg(Registers_8::AL) & 0xf) > 9 || get_flags().test(flag_half_carry))
 			{
 				get_reg(Registers_8::AL) -= 6;
-	
-				if (old_cf)
-				{
-					get_reg(Registers::Flags) |= flag_carry;
-				}
-	
-				else
-				{
-					get_reg(Registers::Flags) &= ~flag_carry;
-				}
-	
-				get_reg(Registers::Flags) |= flag_half_carry;
+
+				get_flags().set(flag_carry, (old_al < get_reg(Registers_8::AL)) || old_cf);
+				get_flags().set(flag_half_carry, true);
 			}
 	
 			else
 			{
-				get_reg(Registers::Flags) &= ~flag_half_carry;
+				get_flags().set(flag_half_carry, false);
 			}
 	
 			if ((old_al > 0x99) || old_cf)
 			{
 				get_reg(Registers_8::AL) -= 0x60;
-				get_reg(Registers::Flags) |= flag_carry;
+				get_flags().set(flag_carry, true);
 			}
 			break;
 		}
@@ -1228,7 +1216,7 @@ void CPU::logic() {
 		
 				_bus.write<uint8_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), get_reg(Registers_8::AL), false);
 		
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::DI)--;
 				}
@@ -1248,7 +1236,7 @@ void CPU::logic() {
 		
 				_bus.write<uint16_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), get_reg(Registers::AX), false);
 		
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::DI) -= 2;
 				}
@@ -1283,11 +1271,11 @@ void CPU::logic() {
 			uint16_t interrupt_offset{ _bus.read<uint16_t>(to_linear(0, interrupt * 4), false) };
 			uint16_t interrupt_segment{ _bus.read<uint16_t>(to_linear(0, interrupt * 4) + 2, false) };
 
-			push(get_reg(Registers::Flags));
+			push(get_flags().to_ulong());
 			push(get_reg(Segment_Registers::CS));
 			push(get_reg(Registers::IP));
 
-			get_reg(Registers::Flags) &= ~flag_interrupt;
+			get_flags().set(flag_interrupt, false);
 
 			get_reg(Segment_Registers::CS) = interrupt_segment;
 			get_reg(Registers::IP) = interrupt_offset;
@@ -1298,14 +1286,14 @@ void CPU::logic() {
 			// pop ip, cs, and flags after interrupt
 			get_reg(Registers::IP) = pop();
 			get_reg(Segment_Registers::CS) = pop();
-			get_reg(Registers::Flags) = pop();
+			get_flags() = std::bitset<16>(pop());
 			break;
 		}
 		case CPU_Opcode::JA_REL8: // 77 ii
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_carry) == 0 && (get_reg(Registers::Flags) & flag_zero) == 0)
+			if ((get_flags().test(flag_carry)) == 0 && (get_flags().test(flag_zero)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1315,7 +1303,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_carry) == 0)
+			if ((get_flags().test(flag_carry)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1325,7 +1313,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_carry)
+			if (get_flags().test(flag_carry))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1335,7 +1323,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_carry || get_reg(Registers::Flags) & flag_zero)
+			if (get_flags().test(flag_carry) || get_flags().test(flag_zero))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1355,7 +1343,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_zero)
+			if (get_flags().test(flag_zero))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1365,7 +1353,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_zero) == 0 && (((get_reg(Registers::Flags) & flag_sign) == 0 && (get_reg(Registers::Flags) & flag_overflow) == 0) || ((get_reg(Registers::Flags) & flag_sign) && (get_reg(Registers::Flags) & flag_overflow))))
+			if ((get_flags().test(flag_zero)) == 0 && (((get_flags().test(flag_sign)) == 0 && (get_flags().test(flag_overflow)) == 0) || ((get_flags().test(flag_sign)) && (get_flags().test(flag_overflow)))))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1375,7 +1363,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (((get_reg(Registers::Flags) & flag_sign) == 0 && (get_reg(Registers::Flags) & flag_overflow) == 0) || ((get_reg(Registers::Flags) & flag_sign) && (get_reg(Registers::Flags) & flag_overflow)))
+			if (((get_flags().test(flag_sign)) == 0 && (get_flags().test(flag_overflow)) == 0) || ((get_flags().test(flag_sign)) && (get_flags().test(flag_overflow))))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1385,7 +1373,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (((get_reg(Registers::Flags) & flag_sign) == 0 && get_reg(Registers::Flags) & flag_overflow) || (get_reg(Registers::Flags) & flag_sign && (get_reg(Registers::Flags) & flag_overflow) == 0))
+			if (((get_flags().test(flag_sign)) == 0 && get_flags().test(flag_overflow)) || (get_flags().test(flag_sign) && (get_flags().test(flag_overflow)) == 0))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1395,7 +1383,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_zero || (((get_reg(Registers::Flags) & flag_sign) == 0 && get_reg(Registers::Flags) & flag_overflow) || (get_reg(Registers::Flags) & flag_sign && (get_reg(Registers::Flags) & flag_overflow) == 0)))
+			if (get_flags().test(flag_zero) || (((get_flags().test(flag_sign)) == 0 && get_flags().test(flag_overflow)) || (get_flags().test(flag_sign) && (get_flags().test(flag_overflow)) == 0)))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1405,7 +1393,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_zero) == 0)
+			if ((get_flags().test(flag_zero)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1415,7 +1403,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_overflow) == 0)
+			if ((get_flags().test(flag_overflow)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1425,7 +1413,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_parity) == 0)
+			if ((get_flags().test(flag_parity)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1435,7 +1423,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if ((get_reg(Registers::Flags) & flag_sign) == 0)
+			if ((get_flags().test(flag_sign)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1445,7 +1433,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_overflow)
+			if (get_flags().test(flag_overflow))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1455,7 +1443,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_parity)
+			if (get_flags().test(flag_parity))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1465,7 +1453,7 @@ void CPU::logic() {
 		{
 			auto imm = static_cast<int8_t>(fetch<Op_Imm<uint8_t>>(data_seg).get_val());
 
-			if (get_reg(Registers::Flags) & flag_sign)
+			if (get_flags().test(flag_sign))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1494,7 +1482,7 @@ void CPU::logic() {
 		}
 		case CPU_Opcode::LAHF:
 		{
-			get_reg(Registers_8::AH) = get_reg(Registers::Flags) & 0x00ff;
+			get_reg(Registers_8::AH) = get_flags().to_ulong() & 0x00ff;
 			break;
 		}
 		case CPU_Opcode::LDS:
@@ -1541,7 +1529,7 @@ void CPU::logic() {
 			{
 				get_reg(Registers_8::AL) = _bus.read<uint8_t>(to_linear(data_seg, get_reg(Registers::SI)), false);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI)--;
 				}
@@ -1559,7 +1547,7 @@ void CPU::logic() {
 			{
 				get_reg(Registers::AX) = _bus.read<uint16_t>(to_linear(data_seg, get_reg(Registers::SI)), false);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI) -= 2;
 				}
@@ -1589,7 +1577,7 @@ void CPU::logic() {
 
 			get_reg(Registers::CX)--;
 
-			if (get_reg(Registers::CX) != 0 && get_reg(Registers::Flags) & flag_zero)
+			if (get_reg(Registers::CX) != 0 && get_flags().test(flag_zero))
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1601,7 +1589,7 @@ void CPU::logic() {
 
 			get_reg(Registers::CX)--;
 
-			if (get_reg(Registers::CX) != 0 && (get_reg(Registers::Flags) & flag_zero) == 0)
+			if (get_reg(Registers::CX) != 0 && (get_flags().test(flag_zero)) == 0)
 			{
 				get_reg(Registers::IP) += imm;
 			}
@@ -1693,7 +1681,7 @@ void CPU::logic() {
 			{
 				_bus.write<uint8_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), _bus.read<uint8_t>(to_linear(data_seg, get_reg(Registers::SI)), false), false);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI)--;
 					get_reg(Registers::DI)--;
@@ -1713,7 +1701,7 @@ void CPU::logic() {
 			{
 				_bus.write<uint16_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), _bus.read<uint16_t>(to_linear(data_seg, get_reg(Registers::SI)), false), false);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI) -= 2;
 					get_reg(Registers::DI) -= 2;
@@ -1763,7 +1751,7 @@ void CPU::logic() {
 			{
 				get_reg(Registers_8::AL) = _bus.read<uint8_t>(to_linear(data_seg, get_reg(Registers::SI)), true);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI)--;
 				}
@@ -1783,7 +1771,7 @@ void CPU::logic() {
 			{
 				get_reg(Registers::AX) = _bus.read<uint16_t>(to_linear(data_seg, get_reg(Registers::SI)), true);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::SI) -= 2;
 				}
@@ -1826,7 +1814,7 @@ void CPU::logic() {
 			push(get_reg(static_cast<Segment_Registers>((std::to_underlying(opcode) >> 3) & 0x3)));
 			break;
 		}
-		case CPU_Opcode::PUSHF: push(get_reg(Registers::Flags)); break;
+		case CPU_Opcode::PUSHF: push(get_flags().to_ulong()); break;
 		case CPU_Opcode::PUSH_IMM8: push(fetch<Op_Imm<uint8_t>>(data_seg).get_val()); break;
 		case CPU_Opcode::PUSH_IMM16: push(fetch<Op_Imm<uint16_t>>(data_seg).get_val()); break;
 		case CPU_Opcode::POPA:
@@ -1871,7 +1859,7 @@ void CPU::logic() {
 			get_reg(static_cast<Segment_Registers>((std::to_underlying(opcode) >> 3) & 0x3)) = pop();
 			break;
 		}
-		case CPU_Opcode::POPF: get_reg(Registers::Flags) = pop(); break;
+		case CPU_Opcode::POPF: get_flags() = pop(); break;
 		case CPU_Opcode::RET_FAR:
 		{
 			get_reg(Registers::IP) = pop();
@@ -1898,8 +1886,8 @@ void CPU::logic() {
 		}
 		case CPU_Opcode::SAHF:
 		{
-			get_reg(Registers::Flags) &= ~0x00ff;
-			get_reg(Registers::Flags) |= get_reg(Registers_8::AH);
+			get_flags() &= ~0x00ff;
+			get_flags() |= (get_reg(Registers_8::AH) & 0x00ff);
 			break;
 		}
 		case CPU_Opcode::SBB_AL_IMM8:
@@ -1947,7 +1935,7 @@ void CPU::logic() {
 				temp -= _bus.read<uint8_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), false);
 				temp = (temp_var);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::DI)--;
 				}
@@ -1971,7 +1959,7 @@ void CPU::logic() {
 				temp -= _bus.read<uint16_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), false);
 				temp = (temp_var);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::DI) -= 2;
 				}
@@ -1986,8 +1974,8 @@ void CPU::logic() {
 
 			break;
 		}
-		case CPU_Opcode::STC: get_reg(Registers::Flags) |= flag_carry;	break;
-		case CPU_Opcode::STD: get_reg(Registers::Flags) |= flag_direction; break;
+		case CPU_Opcode::STC: get_flags().set(flag_carry, true); break;
+		case CPU_Opcode::STD: get_flags().set(flag_direction, true); break;
 		case CPU_Opcode::STI: _sti_enable = true; break;
 		case CPU_Opcode::STOSB:
 		{
@@ -1995,7 +1983,7 @@ void CPU::logic() {
 			{
 				_bus.write<uint8_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), get_reg(Registers_8::AL), false);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::DI)--;
 				}
@@ -2013,7 +2001,7 @@ void CPU::logic() {
 			{
 				_bus.write<uint16_t>(to_linear(get_reg(Segment_Registers::ES), get_reg(Registers::DI)), get_reg(Registers::AX), false);
 
-				if (get_reg(Registers::Flags) & flag_direction)
+				if (get_flags().test(flag_direction))
 				{
 					get_reg(Registers::DI) -= 2;
 				}
@@ -2154,7 +2142,7 @@ void CPU::logic() {
 			{
 			case CPU_Opcode::PREFIX_REP_OR_REPE:
 			{
-				if (!(get_reg(Registers::Flags) & flag_zero))
+				if (!(get_flags().test(flag_zero)))
 				{
 					reset_ip = false;
 				}
@@ -2163,7 +2151,7 @@ void CPU::logic() {
 
 			case CPU_Opcode::PREFIX_REPNE:
 			{
-				if ((get_reg(Registers::Flags) & flag_zero))
+				if ((get_flags().test(flag_zero)))
 				{
 					reset_ip = false;
 				}

@@ -1,32 +1,27 @@
 #pragma once
 #include "cpu.h"
+#include "get_bytes.h"
+#include <bit>
+#include <cmath>
 
 template<CPU_Width T> auto&& Operand<T>::operator++(this auto&& self, int val)
 {
-	auto old{ self.get_val() };
+	bool old_cf{self._cpu.get_flags().test(CPU::flag_carry)};
 
-	self = (self.get_val() + 1);
+	self += 1;
 
-	self._cpu.modify_flag_overflow(old, static_cast<T>(1), self.get_val(), true);
-	self._cpu.modify_flag_half_carry(old, self.get_val(), true);
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_sign(self.get_val());
+	self._cpu.get_flags().set(CPU::flag_carry, old_cf);
 
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::operator--(this auto&& self, int val)
 {
-	auto old{ self.get_val() };
+	bool old_cf{self._cpu.get_flags().test(CPU::flag_carry)};
 
-	self = (self.get_val() - 1);
+	self -= 1;
 
-	self._cpu.modify_flag_overflow(old, static_cast<T>(1), self.get_val(), false);
-	self._cpu.modify_flag_half_carry(old, self.get_val(), false);
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_sign(self.get_val());
+	self._cpu.get_flags().set(CPU::flag_carry, old_cf);
 
 	return self;
 }
@@ -37,12 +32,13 @@ template<CPU_Width T> auto&& Operand<T>::operator+=(this auto&& self, T value)
 
 	self = (self.get_val() + value);
 
-	self._cpu.modify_flag_carry(old, self.get_val(), true);
-	self._cpu.modify_flag_overflow(old, static_cast<T>(value), self.get_val(), true);
-	self._cpu.modify_flag_half_carry(old, self.get_val(), true);
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_sign(self.get_val());
+	self._cpu.get_flags().set(CPU::flag_carry, old > self.get_val());
+	self._cpu.get_flags().set(CPU::flag_overflow, (!(get_hibyte(old) & 0x80) && !(get_hibyte(value) & 0x80) && (get_hibyte(self.get_val()) & 0x80))
+	|| ((get_hibyte(old) & 0x80) && (get_hibyte(value) & 0x80) && !(get_hibyte(self.get_val()) & 0x80)));
+	self._cpu.get_flags().set(CPU::flag_half_carry, (old & 0x0f) > (self.get_val() & 0x0f));
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 
 	return self;
 }
@@ -53,46 +49,53 @@ template<CPU_Width T> auto&& Operand<T>::operator-=(this auto&& self, T value)
 
 	self = (self.get_val() - value);
 
-	self._cpu.modify_flag_carry(old, self.get_val(), false);
-	self._cpu.modify_flag_overflow(old, static_cast<T>(value), self.get_val(), false);
-	self._cpu.modify_flag_half_carry(old, self.get_val(), false);
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_sign(self.get_val());
+	self._cpu.get_flags().set(CPU::flag_carry, old < self.get_val());
+	self._cpu.get_flags().set(CPU::flag_overflow, ((get_hibyte(old) & 0x80) && !(get_hibyte(value) & 0x80) && !(get_hibyte(self.get_val()) & 0x80))
+	|| (!(get_hibyte(old) & 0x80) && (get_hibyte(value) & 0x80) && (get_hibyte(self.get_val()) & 0x80)));
+	self._cpu.get_flags().set(CPU::flag_half_carry, (old & 0x0f) < (self.get_val() & 0x0f));
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::operator&=(this auto&& self, T value)
 {
-	self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_overflow | CPU::flag_carry);
+	self._cpu.get_flags().set(CPU::flag_carry, false);
+	self._cpu.get_flags().set(CPU::flag_overflow, false);
 
 	self = (self.get_val() & value);
-	self._cpu.modify_flag_sign(self.get_val());	
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
+
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::operator|=(this auto&& self, T value)
 {
-	self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_overflow | CPU::flag_carry);
+	self._cpu.get_flags().set(CPU::flag_carry, false);
+	self._cpu.get_flags().set(CPU::flag_overflow, false);
 
 	self = (self.get_val() | value);
-	self._cpu.modify_flag_sign(self.get_val());
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
+	
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::operator^=(this auto&& self, T value)
 {
-	self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_overflow | CPU::flag_carry);
+	self._cpu.get_flags().set(CPU::flag_carry, false);
+	self._cpu.get_flags().set(CPU::flag_overflow, false);
 
 	self = (self.get_val() ^ value);
-	self._cpu.modify_flag_sign(self.get_val());
-	self._cpu.modify_flag_zero(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
+
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 	return self;
 }
 
@@ -102,36 +105,36 @@ template<CPU_Width T> auto&& Operand<T>::operator<<=(this auto&& self, T value)
 	{
 		if ((self.get_val() << (value - 1)) & (std::numeric_limits<T>::max() / 2 + 1))
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+			self._cpu.get_flags().set(CPU::flag_carry, true);
 		}
 		
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
+			self._cpu.get_flags().set(CPU::flag_carry, false);
 		}
 	}
 	self = (self.get_val() << value);
 	
 	if (value == 1)
 	{
-		if ((self.get_val() & (std::numeric_limits<T>::max() / 2 + 1)) && (self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry))
+		if ((self.get_val() & (std::numeric_limits<T>::max() / 2 + 1)) && (self._cpu.get_flags().test(CPU::flag_carry)))
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_overflow;
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
-		else if(!(self.get_val() & (std::numeric_limits<T>::max() / 2 + 1)) && !(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry))
+		else if(!(self.get_val() & (std::numeric_limits<T>::max() / 2 + 1)) && !(self._cpu.get_flags().test(CPU::flag_carry)))
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_overflow;
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_overflow;
+			self._cpu.get_flags().set(CPU::flag_overflow, false);
 		}
 	}
 
-	self._cpu.modify_flag_sign(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_zero(self.get_val());
-	
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
+
 	return self;
 }
 
@@ -142,12 +145,12 @@ template<CPU_Width T> auto&& Operand<T>::operator>>=(this auto&& self, T value)
 	{
 		if ((self.get_val() >> (value - 1)) & 0x1)
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+			self._cpu.get_flags().set(CPU::flag_carry, true);
 		}
 
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
+			self._cpu.get_flags().set(CPU::flag_carry, false);
 		}
 	}
 
@@ -155,20 +158,20 @@ template<CPU_Width T> auto&& Operand<T>::operator>>=(this auto&& self, T value)
 	{
 		if (self.get_val() & (std::numeric_limits<T>::max() / 2 + 1))
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_overflow;
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
 		
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_overflow;
+			self._cpu.get_flags().set(CPU::flag_overflow, false);
 		}
 	}
 
 	self = (self.get_val() >> value);
 
-	self._cpu.modify_flag_sign(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_zero(self.get_val());
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 	
 	return self;
 }
@@ -179,18 +182,18 @@ template<CPU_Width T> auto&& Operand<T>::sar(this auto&& self, T value)
 	{
 		if ((self.get_val() >> (value - 1)) & 0x1)
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+			self._cpu.get_flags().set(CPU::flag_carry, true);
 		}
 
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
+			self._cpu.get_flags().set(CPU::flag_carry, false);
 		}
 	}
 
 	if (value == 1)
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_overflow;
+		self._cpu.get_flags().set(CPU::flag_overflow, false);
 	}
 
 	bool msb{ static_cast<bool>(self.get_val() & (std::numeric_limits<T>::max() / 2 + 1)) };
@@ -210,27 +213,31 @@ template<CPU_Width T> auto&& Operand<T>::sar(this auto&& self, T value)
 		}
 	}
 
-	self._cpu.modify_flag_sign(self.get_val());
-	self._cpu.modify_flag_parity(self.get_val());
-	self._cpu.modify_flag_zero(self.get_val());
-
+	self._cpu.get_flags().set(CPU::flag_zero, self.get_val() == 0);
+	self._cpu.get_flags().set(CPU::flag_parity, std::popcount(get_lobyte(self.get_val())) % 2 == 0);
+	self._cpu.get_flags().set(CPU::flag_sign, get_hibyte(self.get_val()) & 0x80);
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::neg(this auto&& self)
 {
-	if (self.get_val() != 0)
+	T old{self.get_val()};
+	
+	self = 0;
+
+	self -= old;
+	
+	if (old != 0)
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+		self._cpu.get_flags().set(CPU::flag_carry, true);
 	}
 
 	else
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
+		self._cpu.get_flags().set(CPU::flag_carry, false);
 	}
 
-	self = (-self.get_val());
-	
+
 	return self;
 }
 
@@ -266,12 +273,14 @@ template<CPU_Width T> auto&& Operand<T>::mul(this auto&& self)
 
 		if (self._cpu.get_reg(CPU::Registers::DX) == 0)
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, false);
+			self._cpu.get_flags().set(CPU::flag_overflow, false);
 		}
 
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= (CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, true);
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
 	}
 	
@@ -281,12 +290,14 @@ template<CPU_Width T> auto&& Operand<T>::mul(this auto&& self)
 
 		if (self._cpu.get_reg(CPU::Registers_8::AH) == 0)
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, false);
+			self._cpu.get_flags().set(CPU::flag_overflow, false);
 		}
 
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= (CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, true);
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
 	}
 
@@ -295,66 +306,57 @@ template<CPU_Width T> auto&& Operand<T>::mul(this auto&& self)
 
 template<CPU_Width T> auto&& Operand<T>::rol(this auto&& self, T value) // IMPLEMENauto OF FLAG
 {
-	if(value > 0)
-	{
-		if (std::rotl(self.get_val(), value - 1) & (std::numeric_limits<T>::max() / 2 + 1))
-		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
-		}
+	T og_val{value};
 
-		else
-		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
-		}
+	self = std::rotl(self.get_val(), value);
+
+	if(og_val != 0)
+	{
+		self._cpu.get_flags().set(CPU::flag_carry, get_lobyte(self.get_val()) & 0x1);
 	}
 
-	self = (std::rotl(self.get_val(), value));
+	if(og_val == 1)
+	{
+		self._cpu.get_flags().set(CPU::flag_overflow, !(get_hibyte(self.get_val()) & 0x80) != !(self._cpu.get_flags().test(CPU::flag_carry)));
+	}
 
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::ror(this auto&& self, T value) // IMPLEMENauto OF FLAG
 {
-	if(value > 0)
-	{
-		if (std::rotr(self.get_val(), value - 1) & 0x1)
-		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
-		}
+	T og_val{value};
 
-		else
-		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
-		}
+	self = std::rotr(self.get_val(), value);
+
+	if(og_val != 0)
+	{
+		self._cpu.get_flags().set(CPU::flag_carry, get_hibyte(self.get_val()) & 0x80);
 	}
 
-	self = (std::rotr(self.get_val(), value));
+	if(og_val == 1)
+	{
+		self._cpu.get_flags().set(CPU::flag_overflow, !(get_hibyte(self.get_val()) & 0x40) != !(get_hibyte(self.get_val()) & 0x80));
+	}
 
 	return self;
 }
 
 template<CPU_Width T> auto&& Operand<T>::rcl(this auto&& self, T value)
 {
-	bool old_cf{ static_cast<bool>(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry) };
+	T og_val{value};
 
-	if(value > 0)
+	while(value != 0)
 	{
-		if (std::rotl(self.get_val(), value - 1) & (std::numeric_limits<T>::max() / 2 + 1))
-		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
-		}
-
-		else
-		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
-		}
+		bool temp_cf{get_hibyte(self.get_val()) & 0x80};
+		self = (self.get_val() * 2) + self._cpu.get_flags().test(CPU::flag_carry);
+		self._cpu.get_flags().set(CPU::flag_carry, temp_cf);
+		value--;
 	}
 
-	self = (std::rotl(self.get_val(), value));
-
-	if (old_cf)
+	if(og_val == 1)
 	{
-		self = (self.get_val() | 0x1);
+		self._cpu.get_flags().set(CPU::flag_overflow, !(get_hibyte(self.get_val()) & 0x80) != !(self._cpu.get_flags().test(CPU::flag_carry)));
 	}
 
 	return self;
@@ -362,23 +364,19 @@ template<CPU_Width T> auto&& Operand<T>::rcl(this auto&& self, T value)
 
 template<CPU_Width T> auto&& Operand<T>::rcr(this auto&& self, T value)
 {
-	bool old_cf{ static_cast<bool>(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry) };
+	T og_val{value};
 
-	if (std::rotr(self.get_val(), value - 1) & 0x1)
+	if(og_val == 1)
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+		self._cpu.get_flags().set(CPU::flag_overflow, !(get_hibyte(self.get_val()) & 0x80) != !(self._cpu.get_flags().test(CPU::flag_carry)));
 	}
-
-	else
+	
+	while(value != 0)
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) &= ~CPU::flag_carry;
-	}
-
-	self = (std::rotr(self.get_val(), value));
-
-	if (old_cf)
-	{
-		self = (self.get_val() | (std::numeric_limits<T>::max() / 2 + 1));
+		bool temp_cf{get_lobyte(self.get_val()) & 0x1};
+		self = (self.get_val() / 2) + (self._cpu.get_flags().test(CPU::flag_carry) * pow(2,sizeof(T) * 8));
+		self._cpu.get_flags().set(CPU::flag_carry, temp_cf);
+		value--;
 	}
 
 	return self;
@@ -396,12 +394,14 @@ template<CPU_Width T> auto&& Operand<T>::imul(this auto&& self)
 
 		if (self._cpu.get_reg(CPU::Registers::DX) == 0 || self._cpu.get_reg(CPU::Registers::DX) == 0xffff)
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, false);
+			self._cpu.get_flags().set(CPU::flag_overflow, false);
 		}
 
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= (CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, true);
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
 	}
 
@@ -411,12 +411,14 @@ template<CPU_Width T> auto&& Operand<T>::imul(this auto&& self)
 
 		if (self._cpu.get_reg(CPU::Registers_8::AH) == 0 || self._cpu.get_reg(CPU::Registers_8::AH) == 0xff)
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) &= ~(CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, false);
+			self._cpu.get_flags().set(CPU::flag_overflow, false);
 		}
 
 		else
 		{
-			self._cpu.get_reg(CPU::Registers::Flags) |= (CPU::flag_carry | CPU::flag_overflow);
+			self._cpu.get_flags().set(CPU::flag_carry, true);
+			self._cpu.get_flags().set(CPU::flag_overflow, true);
 		}
 	}
 
@@ -468,12 +470,12 @@ template<CPU_Width T> auto&& Operand<T>::test(this auto&& self, T value)
 
 template<CPU_Width T> auto&& Operand<T>::adc(this auto&& self, T value)
 {
-	T carry{static_cast<T>(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry)};
+	T carry{ static_cast<T>(self._cpu.get_flags().test(CPU::flag_carry)) };
 	self += (value + carry);
 
 	if(static_cast<T>(value + carry) == 0 && value == 0xff)
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+		self._cpu.get_flags().set(CPU::flag_carry, true);
 	}
 
 	return self;
@@ -481,12 +483,12 @@ template<CPU_Width T> auto&& Operand<T>::adc(this auto&& self, T value)
 
 template<CPU_Width T> auto&& Operand<T>::sbb(this auto&& self, T value)
 {
-	T carry{static_cast<T>(self._cpu.get_reg(CPU::Registers::Flags) & CPU::flag_carry)};
+	T carry{ static_cast<T>(self._cpu.get_flags().test(CPU::flag_carry)) };
 	self -= (value + carry);
 
 	if(static_cast<T>(value + carry) == 0 && value == 0xff)
 	{
-		self._cpu.get_reg(CPU::Registers::Flags) |= CPU::flag_carry;
+		self._cpu.get_flags().set(CPU::flag_carry, true);
 	}
 
 	return self;

@@ -11,10 +11,10 @@ CPU::CPU(PIC& pic, Bus& bus) : _pic{ pic }, _bus{ bus }
 
 void CPU::reset()
 {
-	std::println("[CPU] Reset to 0xffff:0");
+	std::println("[CPU] Reset to 0xfff0:xf000");
 
-	get_reg(Registers::IP) = 0x0;
-	get_reg(Segment_Registers::CS) = 0xffff;
+	get_reg(Registers::IP) = 0xfff0;
+	get_reg(Segment_Registers::CS) = 0xf000;
 }
 
 void CPU::push(uint16_t value)
@@ -59,7 +59,7 @@ void CPU::check_irq()
 
 	uint16_t vector_offset{};
 
-	if (get_reg(Registers::Flags) & flag_interrupt)
+	if (get_flags().test(CPU::flag_interrupt))
 	{
 		if (_pic.get_irr() != 0)
 		{
@@ -83,14 +83,14 @@ void CPU::check_irq()
 
 			if (interrupt_go)
 			{
-				push(get_reg(Registers::Flags));
+				push(get_flags().to_ulong());
 				push(get_reg(Segment_Registers::CS));
 				push(get_reg(Registers::IP));
 
 				get_reg(Segment_Registers::CS) = _bus.read<uint16_t>(to_linear(0, vector_offset + 2), false);
 				get_reg(Registers::IP) = _bus.read<uint16_t>(to_linear(0, vector_offset), false);
 
-				get_reg(Registers::Flags) &= ~flag_interrupt;
+				get_flags().set(CPU::flag_interrupt, false);
 				_halted = 0;
 			}
 		}

@@ -220,7 +220,7 @@ bool FDC::write(int address, uint8_t data, bool io)
 
 					if (_data[0] & 0x80) // multi track read
 					{
-						if (_selected_fdd->head() == 0)
+						if (head_number == 0)
 						{
 							_selected_fdd->seek(cylinder_number, 1, sector_number);
 						}
